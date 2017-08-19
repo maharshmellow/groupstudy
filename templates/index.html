@@ -6,12 +6,12 @@
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
-            // Use a "/test" namespace.
+            // Use a "/process" namespace.
             // An application can open a connection on multiple namespaces, and
             // Socket.IO will multiplex all those connections on a single
             // physical channel. If you don't care about multiple channels, you
             // can set the namespace to an empty string.
-            namespace = '/test';
+            namespace = '/process';
 
             // Connect to the Socket.IO server.
             // The connection URL has the following format:
@@ -22,15 +22,15 @@
             // The callback function is invoked when a connection with the
             // server is established.
             socket.on('connect', function() {
-                socket.emit('my_event', {data: 'I\'m connected!'});
+                socket.emit('message_event', {data: 'I\'m connected!'});
             });
 
             // Event handler for server sent data.
             // The callback function is invoked whenever the server emits data
             // to the client. The data is then displayed in the "Received"
             // section of the page.
-            socket.on('my_response', function(msg) {
-                $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+            socket.on('response', function(msg) {
+                $('#log').append('<br>' + $('<div/>').text(msg.data).html());
             });
 
             // Interval function that tests message latency by sending a "ping"
@@ -60,29 +60,23 @@
             // These accept data from the user and send it to the server in a
             // variety of ways
             $('form#emit').submit(function(event) {
-                socket.emit('my_event', {data: $('#emit_data').val()});
+                socket.emit('message_event', {data: $('#emit_data').val()});
                 return false;
             });
             $('form#broadcast').submit(function(event) {
-                socket.emit('my_broadcast_event', {data: $('#broadcast_data').val()});
+                socket.emit('broadcast_event', {data: $('#broadcast_data').val()});
                 return false;
             });
             $('form#join').submit(function(event) {
-                socket.emit('join', {room: $('#join_room').val()});
+                socket.emit('join_event', {room: $('#join_room').val()});
                 return false;
             });
-            $('form#leave').submit(function(event) {
-                socket.emit('leave', {room: $('#leave_room').val()});
-                return false;
-            });
+
             $('form#send_room').submit(function(event) {
-                socket.emit('my_room_event', {room: $('#room_name').val(), data: $('#room_data').val()});
+                socket.emit('room_event', {room: $('#room_name').val(), data: $('#room_data').val()});
                 return false;
             });
-            $('form#close').submit(function(event) {
-                socket.emit('close_room', {room: $('#close_room').val()});
-                return false;
-            });
+
             $('form#disconnect').submit(function(event) {
                 socket.emit('disconnect_request');
                 return false;
@@ -91,8 +85,6 @@
     </script>
 </head>
 <body>
-    <h1>Flask-SocketIO Test</h1>
-    <p>Async mode is: <b>{{ async_mode }}</b></p>
     <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
     <h2>Send:</h2>
     <form id="emit" method="POST" action='#'>
@@ -107,18 +99,10 @@
         <input type="text" name="join_room" id="join_room" placeholder="Room Name">
         <input type="submit" value="Join Room">
     </form>
-    <form id="leave" method="POST" action='#'>
-        <input type="text" name="leave_room" id="leave_room" placeholder="Room Name">
-        <input type="submit" value="Leave Room">
-    </form>
     <form id="send_room" method="POST" action='#'>
         <input type="text" name="room_name" id="room_name" placeholder="Room Name">
         <input type="text" name="room_data" id="room_data" placeholder="Message">
         <input type="submit" value="Send to Room">
-    </form>
-    <form id="close" method="POST" action="#">
-        <input type="text" name="close_room" id="close_room" placeholder="Room Name">
-        <input type="submit" value="Close Room">
     </form>
     <form id="disconnect" method="POST" action="#">
         <input type="submit" value="Disconnect">

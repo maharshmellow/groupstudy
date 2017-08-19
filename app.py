@@ -16,15 +16,26 @@ thread = None
 thread_lock = Lock()
 
 
-def background_thread():
-    """Example of how to send server generated events to clients."""
-    count = 0
-    while True:
-        socketio.sleep(10)
-        count += 1
-        socketio.emit('my_response',
-                      {'data': 'Server generated event', 'count': count},
-                      namespace='/test')
+
+# def background_thread():
+#     """Example of how to send server generated events to clients."""
+#     while True:
+#         socketio.sleep(10)
+#         socketio.emit('response',
+#                       {'data': 'Server generated event'},
+#                       namespace='/process')
+@socketio.on('connect', namespace='/process')
+def connect():
+    # global thread
+    # with thread_lock:
+    #     if thread is None:
+    #         thread = socketio.start_background_task(target=background_thread)
+    emit('response', {'data': 'Connected'})
+
+
+@socketio.on('disconnect', namespace='/process')
+def test_disconnect():
+    print('Client disconnected', request.sid)
 
 
 @app.route('/')
@@ -32,81 +43,48 @@ def index():
     return render_template('index.html', async_mode=socketio.async_mode)
 
 
-@socketio.on('my_event', namespace='/test')
+@socketio.on('message_event', namespace='/process')
 def test_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']})
+    # session['receive_count'] = session.get('receive_count', 0)
+    emit('response',
+         {'data': message['data']})
 
 
-@socketio.on('my_broadcast_event', namespace='/test')
+@socketio.on('broadcast_event', namespace='/process')
 def test_broadcast_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']},
+    # session['receive_count'] = session.get('receive_count', 0)
+    emit('response',
+         {'data': message['data']},
          broadcast=True)
 
 
-@socketio.on('join', namespace='/test')
+@socketio.on('join_event', namespace='/process')
 def join(message):
     join_room(message['room'])
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': 'In rooms: ' + ', '.join(rooms()),
-          'count': session['receive_count']})
+    # session['receive_count'] = session.get('receive_count', 0) + 1
+    emit('response',
+         {'data': 'In rooms: ' + ', '.join(rooms())})
 
 
-@socketio.on('leave', namespace='/test')
-def leave(message):
-    leave_room(message['room'])
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': 'In rooms: ' + ', '.join(rooms()),
-          'count': session['receive_count']})
-
-
-@socketio.on('close_room', namespace='/test')
-def close(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response', {'data': 'Room ' + message['room'] + ' is closing.',
-                         'count': session['receive_count']},
-         room=message['room'])
-    close_room(message['room'])
-
-
-@socketio.on('my_room_event', namespace='/test')
+@socketio.on('room_event', namespace='/process')
 def send_room_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']},
+    # session['receive_count'] = session.get('receive_count', 0)
+    emit('response',
+         {'data': message['data']},
          room=message['room'])
 
 
-@socketio.on('disconnect_request', namespace='/test')
+@socketio.on('disconnect_request', namespace='/process')
 def disconnect_request():
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': 'Disconnected!', 'count': session['receive_count']})
+    # session['receive_count'] = session.get('receive_count', 0) - 1
+    emit('response',
+         {'data': 'Disconnected!'})
     disconnect()
 
 
-@socketio.on('my_ping', namespace='/test')
+@socketio.on('my_ping', namespace='/process')
 def ping_pong():
     emit('my_pong')
-
-
-@socketio.on('connect', namespace='/test')
-def test_connect():
-    global thread
-    with thread_lock:
-        if thread is None:
-            thread = socketio.start_background_task(target=background_thread)
-    emit('my_response', {'data': 'Connected', 'count': 0})
-
-
-@socketio.on('disconnect', namespace='/test')
-def test_disconnect():
-    print('Client disconnected', request.sid)
 
 
 if __name__ == '__main__':
