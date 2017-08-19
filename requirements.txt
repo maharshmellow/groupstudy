@@ -9,3 +9,5 @@ python-engineio
 python-socketio
 six==1.9.0
 Werkzeug==0.12.2
+gunicorn==19.6.0
+eventlet==0.21.0
