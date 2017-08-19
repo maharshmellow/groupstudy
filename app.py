@@ -30,11 +30,17 @@ def connect():
     # with thread_lock:
     #     if thread is None:
     #         thread = socketio.start_background_task(target=background_thread)
-    emit('response', {'data': 'Connected'})
+    emit('response', {'data': 'Connected. Room Number: '+ request.sid})
 
+@socketio.on('disconnect_request', namespace='/process')
+def disconnect_request():
+    # session['receive_count'] = session.get('receive_count', 0) - 1
+    emit('response',
+         {'data': 'Disconnected!'})
+    disconnect()
 
 @socketio.on('disconnect', namespace='/process')
-def test_disconnect():
+def disconnect():
     print('Client disconnected', request.sid)
 
 
@@ -74,12 +80,6 @@ def send_room_message(message):
          room=message['room'])
 
 
-@socketio.on('disconnect_request', namespace='/process')
-def disconnect_request():
-    # session['receive_count'] = session.get('receive_count', 0) - 1
-    emit('response',
-         {'data': 'Disconnected!'})
-    disconnect()
 
 
 @socketio.on('my_ping', namespace='/process')
