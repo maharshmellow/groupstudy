@@ -31,38 +31,39 @@
             // section of the page.
             socket.on('response', function(msg) {
                 $('#log').append('<br>' + $('<div/>').text(msg.data).html());
+                // $('#log').append('<br>' + $('<div/>').text(getTimerValue()).html());
             });
 
             // Interval function that tests message latency by sending a "ping"
             // message. The server then responds with a "pong" message and the
             // round trip time is measured.
-            var ping_pong_times = [];
-            var start_time;
-            window.setInterval(function() {
-                start_time = (new Date).getTime();
-                socket.emit('my_ping');
-            }, 1000);
+            // var ping_pong_times = [];
+            // var start_time;
+            // window.setInterval(function() {
+            //     start_time = (new Date).getTime();
+            //     socket.emit('my_ping');
+            // }, 1000);
 
             // Handler for the "pong" message. When the pong is received, the
             // time from the ping is stored, and the average of the last 30
             // samples is average and displayed.
-            socket.on('my_pong', function() {
-                var latency = (new Date).getTime() - start_time;
-                ping_pong_times.push(latency);
-                ping_pong_times = ping_pong_times.slice(-30); // keep last 30 samples
-                var sum = 0;
-                for (var i = 0; i < ping_pong_times.length; i++)
-                    sum += ping_pong_times[i];
-                $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
-            });
+            // socket.on('my_pong', function() {
+            //     var latency = (new Date).getTime() - start_time;
+            //     ping_pong_times.push(latency);
+            //     ping_pong_times = ping_pong_times.slice(-30); // keep last 30 samples
+            //     var sum = 0;
+            //     for (var i = 0; i < ping_pong_times.length; i++)
+            //         sum += ping_pong_times[i];
+            //     $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
+            // });
 
             // Handlers for the different forms in the page.
             // These accept data from the user and send it to the server in a
             // variety of ways
-            $('form#emit').submit(function(event) {
-                socket.emit('message_event', {data: $('#emit_data').val()});
-                return false;
-            });
+            // $('form#emit').submit(function(event) {
+            //     socket.emit('message_event', {data: $('#emit_data').val()});
+            //     return false;
+            // });
             $('form#broadcast').submit(function(event) {
                 socket.emit('broadcast_event', {data: $('#broadcast_data').val()});
                 return false;
@@ -85,12 +86,14 @@
     </script>
 </head>
 <body>
-    <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
+    <div id="countdown"></div>
+
+    <!-- <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p> -->
     <h2>Send:</h2>
-    <form id="emit" method="POST" action='#'>
+    <!-- <form id="emit" method="POST" action='#'>
         <input type="text" name="emit_data" id="emit_data" placeholder="Message">
         <input type="submit" value="Echo">
-    </form>
+    </form> -->
     <form id="broadcast" method="POST" action='#'>
         <input type="text" name="broadcast_data" id="broadcast_data" placeholder="Message">
         <input type="submit" value="Broadcast">
@@ -110,4 +113,40 @@
     <h2>Receive:</h2>
     <div id="log"></div>
 </body>
+
+<script>
+var element, endTime, hours, mins, msLeft, time;
+function countdown(elementName, minutes, seconds){
+    function twoDigits(n){
+        return (n <= 9 ? "0" + n : n);
+    }
+
+    function updateTimer(){
+        msLeft = endTime - (+new Date);
+        if (msLeft < 1000) {
+            element.innerHTML = "countdown's over!";
+        }
+        else {
+            time = new Date( msLeft );
+            hours = time.getUTCHours();
+            mins = time.getUTCMinutes();
+            element.innerHTML = (hours ? hours + ':' + twoDigits( mins ) : mins) + ':' + twoDigits( time.getUTCSeconds() );
+            setTimeout(updateTimer, time.getUTCMilliseconds() + 500);
+        }
+    }
+
+    element = document.getElementById( elementName );
+    endTime = (+new Date) + 1000 * (60*minutes + seconds) + 500;
+    updateTimer();
+}
+
+countdown("countdown", 59, 59);
+
+function getTimerValue(){
+    if (msLeft < 1000) {
+        return 0;
+    }
+    return(msLeft);
+}
+</script>
 </html>

@@ -49,15 +49,15 @@ def index():
     return render_template('index.html', async_mode=socketio.async_mode)
 
 
-@socketio.on('message_event', namespace='/process')
-def test_message(message):
-    # session['receive_count'] = session.get('receive_count', 0)
-    emit('response',
-         {'data': message['data']})
+# @socketio.on('message_event', namespace='/process')
+# def test_message(message):
+#     # session['receive_count'] = session.get('receive_count', 0)
+#     emit('response',
+#          {'data': message['data']})
 
 
 @socketio.on('broadcast_event', namespace='/process')
-def test_broadcast_message(message):
+def broadcast_message(message):
     # session['receive_count'] = session.get('receive_count', 0)
     emit('response',
          {'data': message['data']},
@@ -66,10 +66,14 @@ def test_broadcast_message(message):
 
 @socketio.on('join_event', namespace='/process')
 def join(message):
+    room = message["room"]
+    send_room_message({"data":"Someone is about to join a room", "room":message['room']})
     join_room(message['room'])
     # session['receive_count'] = session.get('receive_count', 0) + 1
     emit('response',
          {'data': 'In rooms: ' + ', '.join(rooms())})
+
+    send_room_message({"data":"Someone has joined the room", "room":message['room']})
 
 
 @socketio.on('room_event', namespace='/process')
@@ -78,8 +82,6 @@ def send_room_message(message):
     emit('response',
          {'data': message['data']},
          room=message['room'])
-
-
 
 
 @socketio.on('my_ping', namespace='/process')
