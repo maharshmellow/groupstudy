@@ -40,17 +40,20 @@
             });
 
             socket.on("time_request", function(){
+                // called when another user is requesting the timer time
                 socket.emit('sync_time_event', {time: getTimerValue()});
             })
 
             socket.on('sync_time_response', function(msg) {
+                // called when the current time is being received
                 setTimerValue(msg.time);
                 $('#log').append('<br>' + $('<div/>').text(msg.time).html());
                 // $('#log').append('<br>' + $('<div/>').text(getTimerValue()).html());
             });
 
             socket.on('playtoggle_response', function(msg) {
-                alert("Play");
+                toggleTimer();
+                // alert("Play");
             });
 
             // Interval function that tests message latency by sending a "ping"
@@ -148,7 +151,7 @@ function countdown(elementName, milliseconds){
         if (msLeft < 1000) {
             element.innerHTML = "countdown's over!";
         }
-        else {
+        else if (!pause){
             time = new Date(msLeft);
             hours = time.getUTCHours();
             mins = time.getUTCMinutes();
@@ -156,11 +159,9 @@ function countdown(elementName, milliseconds){
             setTimeout(updateTimer, time.getUTCMilliseconds() + 500);
         }
     }
-    if (!pause){
-        element = document.getElementById( elementName );
-        endTime = (+new Date) + milliseconds + 500;
-        updateTimer();
-    }
+    element = document.getElementById( elementName );
+    endTime = (+new Date) + milliseconds + 500;
+    updateTimer();
 
 }
 
@@ -182,6 +183,8 @@ function toggleTimer(){
     else{
         pause = true;
     }
+
+    alert(pause);
 
 }
 

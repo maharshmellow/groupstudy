@@ -54,7 +54,7 @@ def sync_time_event(message):
 @socketio.on('playtoggle_event', namespace='/process')
 def playtoggle_event(message):
     print("Sent Pause Signal")
-    send_room_message({"data":"playpause", "room":message['room']})
+    # send_room_message({"data":"playpause", "room":message['room']})
     emit('playtoggle_response', {"data":"sent"}, room=message["room"])
 
 
