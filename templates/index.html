@@ -23,6 +23,7 @@
             // server is established.
             socket.on('connect', function() {
                 socket.emit('message_event', {data: 'I\'m connected!'});
+                // TODO could also create an event here to get the time
             });
 
             // Event handler for server sent data.
@@ -30,7 +31,17 @@
             // to the client. The data is then displayed in the "Received"
             // section of the page.
             socket.on('response', function(msg) {
+                if (msg.data == "new user requesting time"){
+                    // alert("new user");
+                    socket.emit('sync_time_event', {time: getTimerValue()});
+                }
                 $('#log').append('<br>' + $('<div/>').text(msg.data).html());
+                // $('#log').append('<br>' + $('<div/>').text(getTimerValue()).html());
+            });
+
+            socket.on('sync_time_response', function(msg) {
+                setTimerValue(msg.time);
+                $('#log').append('<br>' + $('<div/>').text(msg.time).html());
                 // $('#log').append('<br>' + $('<div/>').text(getTimerValue()).html());
             });
 
@@ -116,7 +127,7 @@
 
 <script>
 var element, endTime, hours, mins, msLeft, time;
-function countdown(elementName, minutes, seconds){
+function countdown(elementName, milliseconds){
     function twoDigits(n){
         return (n <= 9 ? "0" + n : n);
     }
@@ -127,7 +138,7 @@ function countdown(elementName, minutes, seconds){
             element.innerHTML = "countdown's over!";
         }
         else {
-            time = new Date( msLeft );
+            time = new Date(msLeft);
             hours = time.getUTCHours();
             mins = time.getUTCMinutes();
             element.innerHTML = (hours ? hours + ':' + twoDigits( mins ) : mins) + ':' + twoDigits( time.getUTCSeconds() );
@@ -136,17 +147,19 @@ function countdown(elementName, minutes, seconds){
     }
 
     element = document.getElementById( elementName );
-    endTime = (+new Date) + 1000 * (60*minutes + seconds) + 500;
+    endTime = (+new Date) + milliseconds + 500;
     updateTimer();
 }
 
-countdown("countdown", 59, 59);
+countdown("countdown", 1500000);
 
 function getTimerValue(){
-    if (msLeft < 1000) {
-        return 0;
-    }
     return(msLeft);
 }
+
+function setTimerValue(time_left){
+    countdown("countdown", time_left);
+}
+
 </script>
 </html>

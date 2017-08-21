@@ -15,6 +15,11 @@ socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock()
 
+# rooms = {}      # TODO implement later AND RENAME
+
+@app.route('/')
+def index():
+    return render_template('index.html', async_mode=socketio.async_mode)
 
 
 # def background_thread():
@@ -26,17 +31,11 @@ thread_lock = Lock()
 #                       namespace='/process')
 @socketio.on('connect', namespace='/process')
 def connect():
-    # global thread
-    # with thread_lock:
-    #     if thread is None:
-    #         thread = socketio.start_background_task(target=background_thread)
     emit('response', {'data': 'Connected. Room Number: '+ request.sid})
 
 @socketio.on('disconnect_request', namespace='/process')
 def disconnect_request():
-    # session['receive_count'] = session.get('receive_count', 0) - 1
-    emit('response',
-         {'data': 'Disconnected!'})
+    emit('response', {'data': 'Disconnected!'})
     disconnect()
 
 @socketio.on('disconnect', namespace='/process')
@@ -44,32 +43,25 @@ def disconnect():
     print('Client disconnected', request.sid)
 
 
-@app.route('/')
-def index():
-    return render_template('index.html', async_mode=socketio.async_mode)
+@socketio.on('message_event', namespace='/process')
+def test_message(message):
+    emit('response', {'data': message['data']})
 
-
-# @socketio.on('message_event', namespace='/process')
-# def test_message(message):
-#     # session['receive_count'] = session.get('receive_count', 0)
-#     emit('response',
-#          {'data': message['data']})
+@socketio.on('sync_time_event', namespace='/process')
+def sync_time_event(message):
+    emit('sync_time_response', {'time': message['time']})
 
 
 @socketio.on('broadcast_event', namespace='/process')
 def broadcast_message(message):
-    # session['receive_count'] = session.get('receive_count', 0)
-    emit('response',
-         {'data': message['data']},
-         broadcast=True)
+    emit('response',{'data': message['data']}, broadcast=True)
 
 
 @socketio.on('join_event', namespace='/process')
 def join(message):
     room = message["room"]
-    send_room_message({"data":"Someone is about to join a room", "room":message['room']})
+    send_room_message({"data":"new user requesting time", "room":message['room']})
     join_room(message['room'])
-    # session['receive_count'] = session.get('receive_count', 0) + 1
     emit('response',
          {'data': 'In rooms: ' + ', '.join(rooms())})
 
