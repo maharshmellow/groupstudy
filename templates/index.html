@@ -31,18 +31,26 @@
             // to the client. The data is then displayed in the "Received"
             // section of the page.
             socket.on('response', function(msg) {
-                if (msg.data == "new user requesting time"){
-                    // alert("new user");
-                    socket.emit('sync_time_event', {time: getTimerValue()});
-                }
+                // if (msg.data == "new user requesting time"){
+                //     // alert("new user");
+                //     socket.emit('sync_time_event', {time: getTimerValue()});
+                // }
                 $('#log').append('<br>' + $('<div/>').text(msg.data).html());
                 // $('#log').append('<br>' + $('<div/>').text(getTimerValue()).html());
             });
+
+            socket.on("time_request", function(){
+                socket.emit('sync_time_event', {time: getTimerValue()});
+            })
 
             socket.on('sync_time_response', function(msg) {
                 setTimerValue(msg.time);
                 $('#log').append('<br>' + $('<div/>').text(msg.time).html());
                 // $('#log').append('<br>' + $('<div/>').text(getTimerValue()).html());
+            });
+
+            socket.on('playtoggle_response', function(msg) {
+                alert("Play");
             });
 
             // Interval function that tests message latency by sending a "ping"
@@ -89,8 +97,9 @@
                 return false;
             });
 
-            $('form#disconnect').submit(function(event) {
-                socket.emit('disconnect_request');
+            $('form#playtoggle').submit(function(event) {
+                socket.emit('playtoggle_event', {room: $('#join_room').val()});
+                $('#log').append('<br>' + $('<div/>').text("Sent Pause Signal").html());
                 return false;
             });
         });
@@ -118,8 +127,8 @@
         <input type="text" name="room_data" id="room_data" placeholder="Message">
         <input type="submit" value="Send to Room">
     </form>
-    <form id="disconnect" method="POST" action="#">
-        <input type="submit" value="Disconnect">
+    <form id="playtoggle" method="POST" action="#">
+        <input type="submit" value="Play/Pause">
     </form>
     <h2>Receive:</h2>
     <div id="log"></div>
@@ -127,6 +136,8 @@
 
 <script>
 var element, endTime, hours, mins, msLeft, time;
+var pause = false;
+
 function countdown(elementName, milliseconds){
     function twoDigits(n){
         return (n <= 9 ? "0" + n : n);
@@ -145,10 +156,12 @@ function countdown(elementName, milliseconds){
             setTimeout(updateTimer, time.getUTCMilliseconds() + 500);
         }
     }
+    if (!pause){
+        element = document.getElementById( elementName );
+        endTime = (+new Date) + milliseconds + 500;
+        updateTimer();
+    }
 
-    element = document.getElementById( elementName );
-    endTime = (+new Date) + milliseconds + 500;
-    updateTimer();
 }
 
 countdown("countdown", 1500000);
@@ -159,6 +172,17 @@ function getTimerValue(){
 
 function setTimerValue(time_left){
     countdown("countdown", time_left);
+}
+
+function toggleTimer(){
+    //plays or pauses timer
+    if(pause){
+        pause = false;
+    }
+    else{
+        pause = true;
+    }
+
 }
 
 </script>

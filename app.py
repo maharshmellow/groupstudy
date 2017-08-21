@@ -51,6 +51,12 @@ def test_message(message):
 def sync_time_event(message):
     emit('sync_time_response', {'time': message['time']})
 
+@socketio.on('playtoggle_event', namespace='/process')
+def playtoggle_event(message):
+    print("Sent Pause Signal")
+    send_room_message({"data":"playpause", "room":message['room']})
+    emit('playtoggle_response', {"data":"sent"}, room=message["room"])
+
 
 @socketio.on('broadcast_event', namespace='/process')
 def broadcast_message(message):
@@ -60,10 +66,10 @@ def broadcast_message(message):
 @socketio.on('join_event', namespace='/process')
 def join(message):
     room = message["room"]
-    send_room_message({"data":"new user requesting time", "room":message['room']})
+    # send_room_message({"data":"new user requesting time", "room":message['room']})
+    emit('time_request', room=message["room"])
     join_room(message['room'])
-    emit('response',
-         {'data': 'In rooms: ' + ', '.join(rooms())})
+    emit('response', {'data': 'In rooms: ' + ', '.join(rooms())})
 
     send_room_message({"data":"Someone has joined the room", "room":message['room']})
 
