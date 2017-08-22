@@ -23,10 +23,10 @@
                 $('#log').append('<br>' + $('<div/>').text(msg.room_number).html());
             });
 
-            socket.on('connect', function() {
-                socket.emit('message_event', {data: 'I\'m connected!'});
-                // TODO could also create an event here to get the time
-            });
+            // socket.on('connect', function() {
+            //     socket.emit('connect_event', {data: 'I\'m connected!'});
+            //     // TODO could also create an event here to get the time
+            // });
 
 
             socket.on('response', function(msg) {
@@ -98,7 +98,6 @@
     <form id="playtoggle" method="POST" action="#">
         <input type="submit" value="Play/Pause">
     </form>
-    <input type="hidden" name="Language" value="English">
     <h2>Receive:</h2>
     <div id="log"></div>
 </body>
