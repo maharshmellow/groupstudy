@@ -141,17 +141,24 @@
 var element, endTime, hours, mins, msLeft, time;
 var pause = false;
 
+var pause_time = 0;
+
 function countdown(elementName, milliseconds){
     function twoDigits(n){
         return (n <= 9 ? "0" + n : n);
     }
 
     function updateTimer(){
+        // if the timer is paused then don't do any updates to the time
+        if (pause){
+            return 1;
+        }
         msLeft = endTime - (+new Date);
+
         if (msLeft < 1000) {
             element.innerHTML = "countdown's over!";
         }
-        else if (!pause){
+        else{
             time = new Date(msLeft);
             hours = time.getUTCHours();
             mins = time.getUTCMinutes();
@@ -179,12 +186,12 @@ function toggleTimer(){
     //plays or pauses timer
     if(pause){
         pause = false;
+        countdown("countdown", pause_time);
     }
     else{
         pause = true;
+        pause_time = getTimerValue();
     }
-
-    alert(pause);
 
 }
 
