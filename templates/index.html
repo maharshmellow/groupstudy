@@ -33,7 +33,7 @@
                 $('#log').append('<br>' + $('<div/>').text(msg.data).html());
             });
 
-            socket.on("time_request", function(){
+            socket.on("sync_time_request", function(){
                 // called when another user is requesting the timer time
                 socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused()});
             })
@@ -55,10 +55,10 @@
                 socket.emit('broadcast_event', {data: $('#broadcast_data').val()});
                 return false;
             });
-            $('form#join').submit(function(event) {
-                socket.emit('join_event', {room: $('#join_room').val()});
-                return false;
-            });
+            // $('form#join').submit(function(event) {
+            //     socket.emit('join_event', {room: $('#join_room').val()});
+            //     return false;
+            // });
 
             $('form#send_room').submit(function(event) {
                 socket.emit('room_event', {room: $('#room_name').val(), data: $('#room_data').val()});
@@ -86,10 +86,10 @@
         <input type="text" name="broadcast_data" id="broadcast_data" placeholder="Message">
         <input type="submit" value="Broadcast">
     </form>
-    <form id="join" method="POST" action='#'>
+    <!-- <form id="join" method="POST" action='#'>
         <input type="text" name="join_room" id="join_room" placeholder="Room Name">
         <input type="submit" value="Join Room">
-    </form>
+    </form> -->
     <form id="send_room" method="POST" action='#'>
         <input type="text" name="room_name" id="room_name" placeholder="Room Name">
         <input type="text" name="room_data" id="room_data" placeholder="Message">
@@ -132,7 +132,7 @@ function countdown(elementName, milliseconds){
         }
     }
     element = document.getElementById( elementName );
-    endTime = (+new Date) + milliseconds + 500;
+    endTime = (+new Date) + milliseconds;
     updateTimer();
 
 }
