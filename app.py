@@ -17,10 +17,17 @@ thread_lock = Lock()
 
 # rooms = {}      # TODO implement later AND RENAME
 
+# users_online = {}       # {room# : users online}
+
+
 @app.route('/')
 def index():
     return render_template('index.html', async_mode=socketio.async_mode)
 
+
+@app.route('/<room>')
+def add_user(room):
+    return render_template('index.html', async_mode=socketio.async_mode)
 
 # def background_thread():
 #     """Example of how to send server generated events to clients."""
@@ -31,17 +38,24 @@ def index():
 #                       namespace='/process')
 @socketio.on('connect', namespace='/process')
 def connect():
-    emit('response', {'data': 'Connected. Room Number: '+ request.sid})
+    session['room_number'] = request.sid
 
-@socketio.on('disconnect_request', namespace='/process')
-def disconnect_request():
-    emit('response', {'data': 'Disconnected!'})
-    disconnect()
+    emit('room_number_response', {"room_number":request.sid})
+
+# @socketio.on('disconnect_request', namespace='/process')
+# def disconnect_request():
+#     print("disconnect_request", request.sid)
+#     emit('response',
+#          {"data":"data"},
+#          room=session["room_number"])
+#     disconnect()
 
 @socketio.on('disconnect', namespace='/process')
 def disconnect():
+    emit('response',
+         {"data":"Someone Disconnected"},
+         room=session["room_number"])
     print('Client disconnected', request.sid)
-
 
 @socketio.on('message_event', namespace='/process')
 def test_message(message):
@@ -66,6 +80,7 @@ def broadcast_message(message):
 @socketio.on('join_event', namespace='/process')
 def join(message):
     room = message["room"]
+    session["room_number"] = room
     # send_room_message({"data":"new user requesting time", "room":message['room']})
     emit('time_request', room=message["room"])
     join_room(message['room'])
