@@ -37,7 +37,9 @@ def add_user(room):
 def connect():
     if not session["room_number"]:
         session['room_number'] = request.sid
-        emit('room_number_response', {"room_number":session["room_number"]})
+        join_room(session["room_number"])
+        print("Alone")
+        emit('response',{'data': "You are alone in room #"+session["room_number"]},room=session['room_number'])
     else:
         # auto join the room from the url
         # leave_room(request.sid) # leave the room associtated with this user - joining group room instead
@@ -46,11 +48,12 @@ def connect():
         # get the time from the group
         # emit('sync_time_request', room=session["room_number"])
         # socketio.sleep(3)
-
+        print("Group")
         emit('response',{'data': "Someone joined room #"+session["room_number"]},room=session['room_number'])
         socketio.sleep(1)
         emit('sync_time_request', room=session["room_number"])
         join_room(session["room_number"])
+        emit('response',{'data': "You are NOT alone in room #"+session["room_number"]})
 
 
 @socketio.on('disconnect', namespace='/process')
@@ -70,7 +73,8 @@ def disconnect():
 
 @socketio.on('sync_time_event', namespace='/process')
 def sync_time_event(message):
-    emit('sync_time_response', {'time': message['time'], 'paused': message["paused"]})
+    print("Time Received")
+    emit('sync_time_response', {'time': message['time'], 'paused': message["paused"]}, room=session['room_number'] )
 
 
 @socketio.on('playtoggle_event', namespace='/process')

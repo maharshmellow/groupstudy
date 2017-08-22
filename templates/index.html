@@ -47,6 +47,7 @@
 
             socket.on('playtoggle_response', function(msg) {
                 toggleTimer();
+                $('#log').append('<br>' + $('<div/>').text("Pause").html());
                 // alert("Play");
             });
 
@@ -67,7 +68,7 @@
 
             $('form#playtoggle').submit(function(event) {
                 socket.emit('playtoggle_event', {room: sessionStorage.room_number});
-                $('#log').append('<br>' + $('<div/>').text("Sent Pause Signal").html());
+                // $('#log').append('<br>' + $('<div/>').text("Sent Pause Signal").html());
                 return false;
             });
         });
