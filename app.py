@@ -49,7 +49,7 @@ def test_message(message):
 
 @socketio.on('sync_time_event', namespace='/process')
 def sync_time_event(message):
-    emit('sync_time_response', {'time': message['time']})
+    emit('sync_time_response', {'time': message['time'], 'paused': message["paused"]})
 
 @socketio.on('playtoggle_event', namespace='/process')
 def playtoggle_event(message):

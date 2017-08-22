@@ -41,12 +41,12 @@
 
             socket.on("time_request", function(){
                 // called when another user is requesting the timer time
-                socket.emit('sync_time_event', {time: getTimerValue()});
+                socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused()});
             })
 
             socket.on('sync_time_response', function(msg) {
                 // called when the current time is being received
-                setTimerValue(msg.time);
+                setTimerValue(msg.time, msg.paused);
                 $('#log').append('<br>' + $('<div/>').text(msg.time).html());
                 // $('#log').append('<br>' + $('<div/>').text(getTimerValue()).html());
             });
@@ -178,8 +178,13 @@ function getTimerValue(){
     return(msLeft);
 }
 
-function setTimerValue(time_left){
+function setTimerValue(time_left, paused){
     countdown("countdown", time_left);
+    if (paused){
+        pause = true;
+        pause_time = time_left;
+    }
+
 }
 
 function toggleTimer(){
@@ -192,6 +197,18 @@ function toggleTimer(){
         pause = true;
         pause_time = getTimerValue();
     }
+
+}
+
+function isPaused(){
+    if (pause){
+        return(true);
+    }
+    return(false);
+}
+
+function takeBreak(){
+    // set the timer to 5mins
 
 }
 
