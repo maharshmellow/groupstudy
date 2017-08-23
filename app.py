@@ -89,6 +89,9 @@ def broadcast_message(message):
     emit('response',{'data': message['data']}, broadcast=True)
 
 
+@socketio.on("notification_event", namespace="/process")
+def notification_event(message):
+    emit("notification_response", {"title":message["title"], "body":message["body"]}, room=session['room_number'])
 # # @socketio.on('join_event', namespace='/process')
 # def join(message):
 #     # room = message["room"]
