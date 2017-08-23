@@ -18,16 +18,19 @@
             //     http[s]://<domain>:<port>[/<namespace>]
             var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
-            socket.on('room_number_response', function(msg) {
-                // TODO set the value of the invisible input here
-                $('#log').append('<br>' + $('<div/>').text(msg.room_number).html());
-            });
+
 
             // socket.on('connect', function() {
             //     socket.emit('connect_event', {data: 'I\'m connected!'});
             //     // TODO could also create an event here to get the time
             // });
 
+
+            // responses
+            socket.on('room_number_response', function(msg) {
+                // TODO set the value of the invisible input here
+                $('#log').append('<br>' + $('<div/>').text(msg.room_number).html());
+            });
 
             socket.on('response', function(msg) {
                 $('#log').append('<br>' + $('<div/>').text(msg.data).html());
@@ -36,41 +39,39 @@
             socket.on("sync_time_request", function(){
                 // called when another user is requesting the timer time
                 socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused()});
-            })
+            });
 
             socket.on('sync_time_response', function(msg) {
                 // called when the current time is being received
                 setTimerValue(msg.time, msg.paused);
                 $('#log').append('<br>' + $('<div/>').text(msg.time).html());
-                // $('#log').append('<br>' + $('<div/>').text(getTimerValue()).html());
             });
 
             socket.on('playtoggle_response', function(msg) {
                 toggleTimer();
                 $('#log').append('<br>' + $('<div/>').text("Pause").html());
-                // alert("Play");
             });
 
 
-            $('form#broadcast').submit(function(event) {
-                socket.emit('broadcast_event', {data: $('#broadcast_data').val()});
-                return false;
-            });
-            // $('form#join').submit(function(event) {
-            //     socket.emit('join_event', {room: $('#join_room').val()});
-            //     return false;
-            // });
-
-            $('form#send_room').submit(function(event) {
-                socket.emit('room_event', {room: $('#room_name').val(), data: $('#room_data').val()});
-                return false;
-            });
-
+            // emit
             $('form#playtoggle').submit(function(event) {
                 socket.emit('playtoggle_event', {room: sessionStorage.room_number});
                 // $('#log').append('<br>' + $('<div/>').text("Sent Pause Signal").html());
                 return false;
             });
+            $('form#increaseTimeButton').submit(function(event) {
+                // tell all connected clients to increase their time by 5 minutes
+                socket.emit('sync_time_event', {time: getTimerValue()+300000, paused: isPaused()});
+                return false;
+
+
+            });
+
+
+
+
+
+
         });
     </script>
 </head>
@@ -79,25 +80,17 @@
 
     <!-- <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p> -->
     <h2>Send:</h2>
-    <!-- <form id="emit" method="POST" action='#'>
-        <input type="text" name="emit_data" id="emit_data" placeholder="Message">
-        <input type="submit" value="Echo">
-    </form> -->
-    <form id="broadcast" method="POST" action='#'>
-        <input type="text" name="broadcast_data" id="broadcast_data" placeholder="Message">
-        <input type="submit" value="Broadcast">
-    </form>
-    <!-- <form id="join" method="POST" action='#'>
-        <input type="text" name="join_room" id="join_room" placeholder="Room Name">
-        <input type="submit" value="Join Room">
-    </form> -->
-    <form id="send_room" method="POST" action='#'>
-        <input type="text" name="room_name" id="room_name" placeholder="Room Name">
-        <input type="text" name="room_data" id="room_data" placeholder="Message">
-        <input type="submit" value="Send to Room">
-    </form>
     <form id="playtoggle" method="POST" action="#">
         <input type="submit" value="Play/Pause">
+    </form>
+    <form id="increaseTimeButton" method="POST" action="#">
+        <input type="submit" value="Increase Time">
+    </form>
+    <form id="resetButton" method="POST" action="#">
+        <input type="submit" value="Reset">
+    </form>
+    <form id="breakToggle" method="POST" action="#">
+        <input type="submit" value="Toggle Break">
     </form>
     <h2>Receive:</h2>
     <div id="log"></div>
@@ -145,6 +138,7 @@ function getTimerValue(){
 }
 
 function setTimerValue(time_left, paused){
+    pause = false;
     countdown("countdown", time_left);
     if (paused){
         pause = true;
