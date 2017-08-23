@@ -64,6 +64,11 @@
                 socket.emit('sync_time_event', {time: getTimerValue()+300000, paused: isPaused()});
                 return false;
 
+            });
+            $('form#resetButton').submit(function(event) {
+                // tell all connected clients to increase their time by 5 minutes
+                socket.emit('sync_time_event', {time: 1500000, paused: isPaused()});
+                return false;
 
             });
 
