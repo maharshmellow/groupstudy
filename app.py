@@ -59,7 +59,7 @@ def disconnect():
 @socketio.on('sync_time_event', namespace='/process')
 def sync_time_event(message):
     print("Time Received")
-    emit('sync_time_response', {'time': message['time'], 'paused': message["paused"]}, room=session['room_number'] )
+    emit('sync_time_response', {'time': message['time'], 'paused': message["paused"], 'session': message["session"]}, room=session['room_number'] )
 
 
 @socketio.on('playtoggle_event', namespace='/process')

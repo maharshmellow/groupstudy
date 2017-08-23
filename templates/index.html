@@ -37,12 +37,13 @@
 
             socket.on("sync_time_request", function(){
                 // called when another user is requesting the timer time
-                socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused()});
+                socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused(), session: current_session});
             });
 
             socket.on('sync_time_response', function(msg) {
                 // called when the current time is being received
                 setTimerValue(msg.time, msg.paused);
+                current_session = msg.session;
                 $('#log').append('<br>' + $('<div/>').text(msg.time).html());
             });
 
@@ -59,6 +60,7 @@
                     displayNotification("Resume", "A group member has resumed the timer.");
                 }
 
+                // the notification were disabled before the request was emitted so that the would not appear for this user
                 notifications = true;
 
 
@@ -75,20 +77,20 @@
             });
             $('form#increaseTimeButton').submit(function(event) {
                 // tell all connected clients to increase their time by 5 minutes
-                socket.emit('sync_time_event', {time: getTimerValue()+300000, paused: isPaused()});
+                socket.emit('sync_time_event', {time: getTimerValue()+299500, paused: isPaused(), session:current_session});
                 return false;
 
             });
             $('form#resetButton').submit(function(event) {
                 // tell all connected clients to increase their time by 5 minutes
-                socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused()});
+                socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session});
                 return false;
 
             });
             $('form#breakToggle').submit(function(event) {
                 // start the next session (could be a break or a study session)
                 current_session = (current_session + 1) % 8;
-                socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused()});
+                socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session});
                 return false;
 
             });
@@ -123,7 +125,7 @@ var element, endTime, hours, mins, msLeft, time;
 var pause = true;
 
 
-var sessions = [1500000, 300000, 1500000, 300000, 1500000, 300000, 1500000, 900000];        // [study, break, study, break ...]
+var sessions = [15000, 30000, 15000, 3000, 15000, 3000, 15000, 9000];        // [study, break, study, break ...]
 var current_session = 0;
 var pause_time = sessions[0];
 
@@ -146,7 +148,7 @@ function countdown(elementName, milliseconds){
         msLeft = endTime - (+new Date);
 
         if (msLeft < 0) {
-            current_session = current_session + 1;
+            current_session = (current_session + 1) % 8;
             setTimerValue(sessions[current_session], false);
 
         }
@@ -160,7 +162,7 @@ function countdown(elementName, milliseconds){
         }
     }
     element = document.getElementById(elementName);
-    endTime = (+new Date) + milliseconds;
+    endTime = (+new Date) + milliseconds + 500;
     updateTimer();
 
 }
