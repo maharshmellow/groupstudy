@@ -7,6 +7,13 @@
     <script type="text/javascript" charset="utf-8">
     var socket = null;
         $(document).ready(function() {
+
+            // request permission on page load
+            document.addEventListener('DOMContentLoaded', function () {
+              if (Notification.permission !== "granted")
+                Notification.requestPermission();
+            });
+
             // Use a "/process" namespace.
             // An application can open a connection on multiple namespaces, and
             // Socket.IO will multiplex all those connections on a single
@@ -19,17 +26,8 @@
             //     http[s]://<domain>:<port>[/<namespace>]
             socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
-
-
-            // socket.on('connect', function() {
-            //     socket.emit('connect_event', {data: 'I\'m connected!'});
-            //     // TODO could also create an event here to get the time
-            // });
-
-
             // responses
             socket.on('room_number_response', function(msg) {
-                // TODO set the value of the invisible input here
                 $('#log').append('<br>' + $('<div/>').text(msg.room_number).html());
             });
 
@@ -51,13 +49,28 @@
             socket.on('playtoggle_response', function(msg) {
                 toggleTimer();
                 $('#log').append('<br>' + $('<div/>').text("Pause").html());
+                // TODO notification here
+                if (pause && notifications){
+                    console.log(1);
+                    displayNotification("Paused", "A group member has paused the timer.");
+                }
+                else if (notifications){
+                    console.log(2);
+                    displayNotification("Resume", "A group member has resumed the timer.");
+                }
+
+                notifications = true;
+
+
             });
 
 
             // emit
             $('form#playtoggle').submit(function(event) {
+                notifications = false;      // don't want to receive a notification for this - will be turned on later
                 socket.emit('playtoggle_event', {room: sessionStorage.room_number});
                 // $('#log').append('<br>' + $('<div/>').text("Sent Pause Signal").html());
+
                 return false;
             });
             $('form#increaseTimeButton').submit(function(event) {
@@ -109,9 +122,12 @@
 var element, endTime, hours, mins, msLeft, time;
 var pause = true;
 
+
 var sessions = [1500000, 300000, 1500000, 300000, 1500000, 300000, 1500000, 900000];        // [study, break, study, break ...]
 var current_session = 0;
 var pause_time = sessions[0];
+
+var notifications = true;
 
 document.getElementById("countdown").innerHTML = "25:00";
 // set the initial time on the screen
@@ -185,5 +201,22 @@ function isPaused(){
     return pause;
 }
 
+
+function displayNotification(title, body){
+    if (!Notification) {
+    alert('Desktop notifications not available in your browser. Try Chromium.');
+    return;
+  }
+
+  if (Notification.permission !== "granted")
+    Notification.requestPermission();
+  else {
+    var notification = new Notification(title, {
+      icon: 'http://cdn.sstatic.net/stackexchange/img/logos/so/so-icon.png',
+      body: body,
+    });
+
+  }
+}
 </script>
 </html>
