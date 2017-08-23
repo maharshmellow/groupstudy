@@ -103,9 +103,15 @@
 
 <script>
 var element, endTime, hours, mins, msLeft, time;
-var pause = false;
+var pause = true;
 
-var pause_time = 0;
+var sessions = [1500000, 300000, 1500000, 300000, 1500000, 300000, 1500000, 900000];        // [study, break, study, break ...]
+var current_session = 0;
+var pause_time = sessions[0];
+
+document.getElementById("countdown").innerHTML = "25:00";
+// set the initial time on the screen
+// document.getElementById("countdown").innerHTML = ("25:00");
 
 function countdown(elementName, milliseconds){
     function twoDigits(n){
@@ -126,17 +132,19 @@ function countdown(elementName, milliseconds){
             time = new Date(msLeft);
             hours = time.getUTCHours();
             mins = time.getUTCMinutes();
-            element.innerHTML = (hours ? hours + ':' + twoDigits( mins ) : mins) + ':' + twoDigits( time.getUTCSeconds() );
+            element.innerHTML = (hours ? hours + ':' + twoDigits(mins) : mins) + ':' + twoDigits(time.getUTCSeconds());
             setTimeout(updateTimer, time.getUTCMilliseconds() + 500);
+
         }
     }
-    element = document.getElementById( elementName );
+    element = document.getElementById(elementName);
     endTime = (+new Date) + milliseconds;
     updateTimer();
 
 }
 
 countdown("countdown", 1500000);
+
 
 function getTimerValue(){
     return(msLeft);
@@ -156,6 +164,9 @@ function toggleTimer(){
     //plays or pauses timer
     if(pause){
         pause = false;
+        if (pause_time < 500){
+            pause_time = 1500000;
+        }
         countdown("countdown", pause_time);
     }
     else{
