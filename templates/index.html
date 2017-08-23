@@ -67,7 +67,14 @@
             });
             $('form#resetButton').submit(function(event) {
                 // tell all connected clients to increase their time by 5 minutes
-                socket.emit('sync_time_event', {time: 1500000, paused: isPaused()});
+                socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused()});
+                return false;
+
+            });
+            $('form#breakToggle').submit(function(event) {
+                // start the next session (could be a break or a study session)
+                current_session = (current_session + 1) % 8;
+                socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused()});
                 return false;
 
             });
@@ -126,7 +133,9 @@ function countdown(elementName, milliseconds){
         msLeft = endTime - (+new Date);
 
         if (msLeft < 1000) {
-            element.innerHTML = "countdown's over!";
+            // start the next session
+            current_session = (current_session + 1) % 8;
+            socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused()});
         }
         else{
             time = new Date(msLeft);
@@ -143,7 +152,7 @@ function countdown(elementName, milliseconds){
 
 }
 
-countdown("countdown", 1500000);
+// countdown("countdown", 1500000);
 
 
 function getTimerValue(){
@@ -163,13 +172,12 @@ function setTimerValue(time_left, paused){
 function toggleTimer(){
     //plays or pauses timer
     if(pause){
+        // play
         pause = false;
-        if (pause_time < 500){
-            pause_time = 1500000;
-        }
         countdown("countdown", pause_time);
     }
     else{
+        // pause
         pause = true;
         pause_time = getTimerValue();
     }
@@ -177,15 +185,7 @@ function toggleTimer(){
 }
 
 function isPaused(){
-    if (pause){
-        return(true);
-    }
-    return(false);
-}
-
-function takeBreak(){
-    // set the timer to 5mins
-
+    return pause;
 }
 
 </script>
