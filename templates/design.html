@@ -217,14 +217,36 @@ $(document).ready(function() {
 
     socket.on("sync_time_request", function(){
         // called when another user is requesting the timer time
-        socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused(), session: current_session});
+        socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused(), session: current_session, type:"sync"});
+
+
     });
 
     socket.on('sync_time_response', function(msg) {
         // called when the current time is being received
         setTimerValue(msg.time, msg.paused);
         current_session = msg.session;
-        console.log(msg.time);
+        // console.log(msg.time);
+        if (!notifications){
+            notifications = true;
+            return;
+        }
+
+        if (msg.type == "reset"){
+            displayNotification("RESET", "A group member has reset the timer.");
+        }
+        else if (msg.type == "break"){
+            if (current_session % 2 == 0){
+                // study session
+                displayNotification("STUDY", "A group member has started the study session.");
+            }
+            else{
+                displayNotification("BREAK", "A group member has started the break session.");
+            }
+        }
+        notifications = true;
+
+
     });
 
     socket.on('playtoggle_response', function(msg) {
@@ -258,8 +280,8 @@ $(document).ready(function() {
         }else{
             document.getElementById("startButton").innerText = "PAUSE";
         }
-        
-        notifications = false;      // don't want to receive a notification for this - will be turned on later
+
+        notifications = false;      // don't want this client to receive a notification for this - will be turned on later
         socket.emit('playtoggle_event', {room: sessionStorage.room_number});
         // $('#log').append('<br>' + $('<div/>').text("Sent Pause Signal").html());
 
@@ -267,15 +289,17 @@ $(document).ready(function() {
         return false;
     });
     $('form#resetButton').submit(function(event) {
+        notifications = false;      // don't want this client to receive a notification for this - will be turned on later
         // tell all connected clients to increase their time by 5 minutes
-        socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session});
+        socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session, type:"reset"});
         return false;
 
     });
     $('form#breakToggle').submit(function(event) {
+        notifications = false;      // don't want to receive a notification for this - will be turned on later
         // start the next session (could be a break or a study session)
         current_session = (current_session + 1) % 8;
-        socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session});
+        socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session, type:"break"});
         return false;
 
     });
@@ -313,7 +337,17 @@ function countdown(elementName, milliseconds){
         msLeft = endTime - (+new Date);
 
         if (msLeft < 0) {
+
+
             current_session = (current_session + 1) % 8;
+            // break and study notifications
+            if (current_session % 2 == 0){
+                // study session
+                displayNotification("STUDY", "Time to study!");
+            }
+            else{
+                displayNotification("BREAK", "Time for a break!");
+            }
             setTimerValue(sessions[current_session], false);
 
         }
