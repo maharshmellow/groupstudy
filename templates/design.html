@@ -218,7 +218,7 @@ $(document).ready(function() {
     socket.on("sync_time_request", function(){
         // called when another user is requesting the timer time
         socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused(), session: current_session, type:"sync"});
-
+        displayNotification("New User Joined", "A new member has joined the group!");
 
     });
 
@@ -337,8 +337,6 @@ function countdown(elementName, milliseconds){
         msLeft = endTime - (+new Date);
 
         if (msLeft < 0) {
-
-
             current_session = (current_session + 1) % 8;
             // break and study notifications
             if (current_session % 2 == 0){
