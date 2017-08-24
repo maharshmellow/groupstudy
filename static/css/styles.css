@@ -1,0 +1,15 @@
+html, body {
+    position: relative;
+    height: 100%;
+    background-color: white;
+    overflow-y: hidden;
+    /*background: #FFFFFF;*/
+    color: #463C70;
+}
+
+
+
+
+/*@media only screen and (max-width: 500px) {
+
+}*/

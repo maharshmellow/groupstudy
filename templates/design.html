@@ -1,0 +1,154 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <!-- <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script> -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <title>Group Study Timer - Maharsh Patel</title>
+	<meta charset="utf-8" />
+	<link rel="stylesheet" href="../static/css/bootstrap.min.css" type="text/css" />
+	<link rel="stylesheet" href="../static/css/fonts.css" type="text/css" />
+	<!-- <link rel="stylesheet" href="../static/css/styles.css" type="text/css" /> -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row" id="countdown_area">
+            <div class="row">
+                <img id="logo" src="../static/images/grouptimer.svg"></img>
+            </div>
+            <div class="row">
+                <div id="countdown">21:43</div>
+            </div>
+            <div class="row">
+                <button id="inviteButton" class="center-block">INVITE</button>
+            </div>
+
+
+        </div>
+        <div class="row" id="control_area">
+            <div class="col-md-4 col-md-push-4">
+                    <div class="col-md-8 col-md-push-2 control_text">
+                        <button id="startButton" class="control_item btn-block">START</button>
+                    </div>
+                    <div class="col-md-2 col-md-pull-8 control_text">
+                        <button id="resetButton" class="control_item btn-block">RESET</button>
+                    </div>
+
+                    <div class="col-md-2 control_text">
+                        <button id="skipButton" class="control_item btn-block">SKIP</button>
+                    </div>
+            </div>
+            <div class="col-md-4 col-md-pull-4" id="members_section">
+                GROUP MEMBERS CONNECTED <br>
+                <span id="members_online_counter">4</span>
+            </div>
+
+            <div class="col-md-4" id="sessions_section">
+                STUDY SESSIONS COMPLETED <br>
+                <span id="study_session_counter">6</span>
+            </div>
+        </div>
+
+    </div>
+
+
+</body>
+<style>
+html, body {
+    position: relative;
+    height: 100%;
+    overflow-x: hidden;
+    background: #170420;
+    font-family: "trakr_fancy";
+}
+#logo{
+    padding-left:50px;
+    padding-top:20px;
+}
+.container-fluid{
+    padding-right: 0; /*15px in bootstrap.css*/
+    padding-left: 0;  /*idem*/
+    margin-right: auto;
+    margin-left: auto;
+}
+
+#countdown_area{
+    background-color: #170420;
+    height: 85vh;
+    color: white;
+}
+#countdown{
+    font-size: 15vw;
+    text-align: center;
+    line-height: 60vh;
+    font-weight: 100;
+}
+#inviteButton{
+    background-color: #C41943;
+    border: none;
+    padding: 20px;
+    width: 200px;
+
+
+}
+
+#control_area{
+    background-color: #F1EFF8;
+    /*height:15vh;*/
+}
+.control_text{
+    color: #170420;
+    padding: 0;
+}
+.control_item{
+    height: 15vh;
+}
+#resetButton, #skipButton{
+    background-color: #C41943;
+    border: none;
+    font-weight: 100;
+    color: #F1EFF8;
+}
+#startButton{
+    background-color: #E71D4A;
+    border: none;
+    font-size: 25px;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+    color: #F1EFF8;
+}
+
+#members_section{
+    color: #170420;
+    text-align: left;
+    padding-left: 30px;
+    padding-top: 10px;
+    letter-spacing: -0.5px;
+    font-size: 16px;
+}
+
+#sessions_section{
+    color: #170420;
+    text-align: right;
+    padding-right: 30px;
+    padding-top: 10px;
+    letter-spacing: -0.5px;
+    font-size: 16px;
+
+}
+#members_online_counter, #study_session_counter{
+    font-size: 8vh;
+}
+
+@media only screen and (max-width: 900px) {
+    #members_section, #sessions_section{
+        text-align: center;
+        padding: 0;
+        padding-top: 10px;
+    }
+
+}
+</style>
+</html>
