@@ -35,15 +35,14 @@ def connect():
         session['room_number'] = request.sid
         join_room(session["room_number"])
         print("Alone")
-        emit('response',{'data': "You are alone in room #"+session["room_number"]},room=session['room_number'])
+        emit('response',{'data': "connect", "room":session["room_number"]},room=session['room_number'])
     else:
         # auto join the room from the url
         print("Group")
-        emit('response',{'data': "Someone joined room #"+session["room_number"]},room=session['room_number'])
+        emit('response',{'data': "connect", "room":session["room_number"]},room=session['room_number'])
         socketio.sleep(1)
         emit('sync_time_request', room=session["room_number"])
         join_room(session["room_number"])
-        emit('response',{'data': "You are NOT alone in room #"+session["room_number"]})
 
 
 @socketio.on('disconnect', namespace='/process')

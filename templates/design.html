@@ -26,7 +26,7 @@
                 <div id="countdown">25:00</div>
             </div>
             <div class="row">
-                <p id="inviteLink" style="display: none;">471c23cce98a4e4689c1ae33d74ca168</p>
+                <p id="inviteLink" style="display: none;">Random Link</p>
                 <button id="inviteButton" onclick="copyInviteLink('inviteLink')" data-toggle="tooltip" class="center-block">INVITE</button>
             </div>
         </div>
@@ -173,7 +173,7 @@ function copyInviteLink(elementId) {
   document.body.removeChild(aux);
 
   // change the text of the button
-  document.getElementById("inviteButton").innerText = "LINK COPIED TO CLIPBOARD";
+  document.getElementById("inviteButton").innerText = "COPIED TO CLIPBOARD";
   document.getElementById("inviteButton").style.backgroundColor = "#E71D4A";
 
   setInterval(function () {
@@ -209,9 +209,16 @@ $(document).ready(function() {
     // responses
     socket.on('response', function(msg) {
         // TODO convert this to a proper disconnect_response
-        if (msg.data == "disconnect"){
+
+        if (msg.data == "connect"){
+            // update the invite link with the room number
+            document.getElementById("inviteLink").innerHTML = location.protocol + '//' + document.domain + '/' + msg.room;
+        }
+        else if (msg.data == "disconnect"){
+            // update the online member count
             updateMembersConnected(getMembersConnected() - 1);
         }
+
         console.log(msg.data);
     });
 
@@ -284,9 +291,6 @@ $(document).ready(function() {
 
         notifications = false;      // don't want this client to receive a notification for this - will be turned on later
         socket.emit('playtoggle_event', {room: sessionStorage.room_number});
-        // $('#log').append('<br>' + $('<div/>').text("Sent Pause Signal").html());
-
-
         return false;
     });
     $('form#resetButton').submit(function(event) {
