@@ -173,7 +173,7 @@ function copyInviteLink(elementId) {
   document.body.removeChild(aux);
 
   // change the text of the button
-  document.getElementById("inviteButton").innerText = "Link Copied to Clipboard";
+  document.getElementById("inviteButton").innerText = "LINK COPIED TO CLIPBOARD";
   document.getElementById("inviteButton").style.backgroundColor = "#E71D4A";
 
   setInterval(function () {
@@ -345,6 +345,8 @@ function countdown(elementName, milliseconds){
             }
             else{
                 displayNotification("BREAK", "Time for a break!");
+                study_sessions_completed += 1;
+                document.getElementById("study_session_counter").innerHTML = study_sessions_completed;
             }
             setTimerValue(sessions[current_session], false);
 
