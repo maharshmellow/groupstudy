@@ -159,6 +159,19 @@ html, body {
         padding: 0;
         padding-top: 10px;
     }
+    #logo{
+        visibility: hidden;
+    }
+    #inviteButton{
+        /*visibility: hidden;*/
+        position: absolute;
+        left: 0px;
+        bottom: 15vh;
+        padding: 10px;
+        width: 100%;
+        background-color: #170420;
+
+    }
 
 }
 </style>
@@ -188,12 +201,12 @@ function copyInviteLink(elementId) {
 
   // change the text of the button
   document.getElementById("inviteButton").innerText = "COPIED TO CLIPBOARD";
-  document.getElementById("inviteButton").style.backgroundColor = "#E71D4A";
+  // document.getElementById("inviteButton").style.backgroundColor = "#E71D4A";
 
   setInterval(function () {
      //set the inner html, parse the value from the inner html as well
      document.getElementById("inviteButton").innerText = "INVITE";
-     document.getElementById("inviteButton").style.backgroundColor = "#C41943";
+    //  document.getElementById("inviteButton").style.backgroundColor = "#C41943";
  }, 3000);
 
 
