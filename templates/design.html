@@ -7,6 +7,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <title>Group Study Timer - Maharsh Patel</title>
 	<meta charset="utf-8" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<link rel="stylesheet" href="../static/css/bootstrap.min.css" type="text/css" />
 	<link rel="stylesheet" href="../static/css/fonts.css" type="text/css" />
 	<!-- <link rel="stylesheet" href="../static/css/styles.css" type="text/css" /> -->
@@ -22,10 +23,9 @@
                 <div id="countdown">21:43</div>
             </div>
             <div class="row">
-                <button id="inviteButton" class="center-block">INVITE</button>
+                <p id="inviteLink" style="display: none;">471c23cce98a4e4689c1ae33d74ca168</p>
+                <button id="inviteButton" onclick="copyInviteLink('roomNumber')" data-toggle="tooltip" class="center-block">INVITE</button>
             </div>
-
-
         </div>
         <div class="row" id="control_area">
             <div class="col-md-4 col-md-push-4">
@@ -90,6 +90,7 @@ html, body {
     border: none;
     padding: 20px;
     width: 200px;
+    outline: 0;
 
 
 }
@@ -118,6 +119,7 @@ html, body {
     font-weight: 500;
     letter-spacing: -0.5px;
     color: #F1EFF8;
+
 }
 
 #members_section{
@@ -151,4 +153,28 @@ html, body {
 
 }
 </style>
+<script>
+
+function copyInviteLink(elementId) {
+  var aux = document.createElement("input");
+  aux.setAttribute("value", document.getElementById(elementId).innerHTML);
+  document.body.appendChild(aux);
+  aux.select();
+  document.execCommand("copy");
+  document.body.removeChild(aux);
+
+  // change the text of the button
+  document.getElementById("inviteButton").innerText = "Link Copied to Clipboard";
+  document.getElementById("inviteButton").style.backgroundColor = "#E71D4A";
+
+  setInterval(function () {
+     //set the inner html, parse the value from the inner html as well
+     document.getElementById("inviteButton").innerText = "INVITE";
+     document.getElementById("inviteButton").style.backgroundColor = "#C41943";
+ }, 3000);
+
+
+}
+</script>
+
 </html>
