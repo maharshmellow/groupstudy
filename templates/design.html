@@ -12,7 +12,10 @@
 	<link rel="stylesheet" href="../static/css/fonts.css" type="text/css" />
 	<!-- <link rel="stylesheet" href="../static/css/styles.css" type="text/css" /> -->
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" charset="utf-8">
+    </script>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row" id="countdown_area">
@@ -20,34 +23,40 @@
                 <img id="logo" src="../static/images/grouptimer.svg"></img>
             </div>
             <div class="row">
-                <div id="countdown">21:43</div>
+                <div id="countdown">25:00</div>
             </div>
             <div class="row">
                 <p id="inviteLink" style="display: none;">471c23cce98a4e4689c1ae33d74ca168</p>
-                <button id="inviteButton" onclick="copyInviteLink('roomNumber')" data-toggle="tooltip" class="center-block">INVITE</button>
+                <button id="inviteButton" onclick="copyInviteLink('inviteLink')" data-toggle="tooltip" class="center-block">INVITE</button>
             </div>
         </div>
         <div class="row" id="control_area">
             <div class="col-md-4 col-md-push-4">
                     <div class="col-md-8 col-md-push-2 control_text">
-                        <button id="startButton" class="control_item btn-block">START</button>
+                        <form id="playtoggle" method="POST" action="#">
+                            <button id="startButton" class= "control_item btn-block">START</button>
+                        </form>
                     </div>
                     <div class="col-md-2 col-md-pull-8 control_text">
-                        <button id="resetButton" class="control_item btn-block">RESET</button>
+                        <form id="resetButton" method="POST" action="#">
+                            <button class="sideButtons control_item btn-block">RESET</button>
+                        </form>
                     </div>
 
                     <div class="col-md-2 control_text">
-                        <button id="skipButton" class="control_item btn-block">SKIP</button>
+                        <form id="breakToggle" method="POST" action="#">
+                            <button class="sideButtons control_item btn-block">SKIP</button>
+                        </form>
                     </div>
             </div>
             <div class="col-md-4 col-md-pull-4" id="members_section">
                 GROUP MEMBERS CONNECTED <br>
-                <span id="members_online_counter">4</span>
+                <span id="members_online_counter">0</span>
             </div>
 
             <div class="col-md-4" id="sessions_section">
                 STUDY SESSIONS COMPLETED <br>
-                <span id="study_session_counter">6</span>
+                <span id="study_session_counter">0</span>
             </div>
         </div>
 
@@ -91,8 +100,6 @@ html, body {
     padding: 20px;
     width: 200px;
     outline: 0;
-
-
 }
 
 #control_area{
@@ -106,11 +113,12 @@ html, body {
 .control_item{
     height: 15vh;
 }
-#resetButton, #skipButton{
+.sideButtons{
     background-color: #C41943;
     border: none;
     font-weight: 100;
     color: #F1EFF8;
+    outline: 0;
 }
 #startButton{
     background-color: #E71D4A;
@@ -119,6 +127,7 @@ html, body {
     font-weight: 500;
     letter-spacing: -0.5px;
     color: #F1EFF8;
+    outline: 0;
 
 }
 
@@ -174,6 +183,209 @@ function copyInviteLink(elementId) {
  }, 3000);
 
 
+}
+
+var socket = null;
+$(document).ready(function() {
+
+    // request permission on page load
+    document.addEventListener('DOMContentLoaded', function () {
+      if (Notification.permission !== "granted")
+        Notification.requestPermission();
+    });
+
+    // Use a "/process" namespace.
+    // An application can open a connection on multiple namespaces, and
+    // Socket.IO will multiplex all those connections on a single
+    // physical channel. If you don't care about multiple channels, you
+    // can set the namespace to an empty string.
+    namespace = '/process';
+
+    // Connect to the Socket.IO server.
+    // The connection URL has the following format:
+    //     http[s]://<domain>:<port>[/<namespace>]
+    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+    // responses
+    socket.on('room_number_response', function(msg) {
+        console.log(msg.room_number);
+    });
+
+    socket.on('response', function(msg) {
+        console.log(msg.data);
+    });
+
+    socket.on("sync_time_request", function(){
+        // called when another user is requesting the timer time
+        socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused(), session: current_session});
+    });
+
+    socket.on('sync_time_response', function(msg) {
+        // called when the current time is being received
+        setTimerValue(msg.time, msg.paused);
+        current_session = msg.session;
+        console.log(msg.time);
+    });
+
+    socket.on('playtoggle_response', function(msg) {
+        toggleTimer();
+        console.log("Pause");
+
+        if (pause){
+            document.getElementById("startButton").innerText = "START";
+            if (notifications){
+                displayNotification("Paused", "A group member has paused the timer.");
+            }
+        }
+        else{
+            document.getElementById("startButton").innerText = "PAUSE";
+            if (notifications){
+                displayNotification("Resume", "A group member has resumed the timer.");
+            }
+        }
+
+        // the notification were disabled before the request was emitted so that the would not appear for this user
+        notifications = true;
+
+
+    });
+
+
+    // emit
+    $('form#playtoggle').submit(function(event) {
+        if (pause){
+            document.getElementById("startButton").innerText = "START";
+        }else{
+            document.getElementById("startButton").innerText = "PAUSE";
+        }
+        
+        notifications = false;      // don't want to receive a notification for this - will be turned on later
+        socket.emit('playtoggle_event', {room: sessionStorage.room_number});
+        // $('#log').append('<br>' + $('<div/>').text("Sent Pause Signal").html());
+
+
+        return false;
+    });
+    $('form#resetButton').submit(function(event) {
+        // tell all connected clients to increase their time by 5 minutes
+        socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session});
+        return false;
+
+    });
+    $('form#breakToggle').submit(function(event) {
+        // start the next session (could be a break or a study session)
+        current_session = (current_session + 1) % 8;
+        socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session});
+        return false;
+
+    });
+
+
+});
+
+
+var element, endTime, hours, mins, msLeft, time;
+var pause = true;
+
+
+var sessions = [15000, 30000, 15000, 3000, 15000, 3000, 15000, 9000];        // [study, break, study, break ...]
+var current_session = 0;
+var pause_time = sessions[0];
+
+var notifications = true;
+
+var study_sessions_completed = 0
+
+// document.getElementById("countdown").innerHTML = "25:00";
+// set the initial time on the screen
+// document.getElementById("countdown").innerHTML = ("25:00");
+
+function countdown(elementName, milliseconds){
+    function twoDigits(n){
+        return (n <= 9 ? "0" + n : n);
+    }
+
+    function updateTimer(){
+        // if the timer is paused then don't do any updates to the time
+        if (pause){
+            return 1;
+        }
+        msLeft = endTime - (+new Date);
+
+        if (msLeft < 0) {
+            current_session = (current_session + 1) % 8;
+            setTimerValue(sessions[current_session], false);
+
+        }
+        else{
+            time = new Date(msLeft);
+            hours = time.getUTCHours();
+            mins = time.getUTCMinutes();
+            element.innerHTML = (hours ? hours + ':' + twoDigits(mins) : mins) + ':' + twoDigits(time.getUTCSeconds());
+            setTimeout(updateTimer, time.getUTCMilliseconds() + 500);
+
+        }
+    }
+    element = document.getElementById(elementName);
+    endTime = (+new Date) + milliseconds + 500;
+    updateTimer();
+
+}
+
+// countdown("countdown", 1500000);
+
+
+function getTimerValue(){
+    return(msLeft);
+}
+
+function setTimerValue(time_left, paused){
+    pause = false;
+    document.getElementById("startButton").innerText = "PAUSE";
+    countdown("countdown", time_left);
+    if (paused){
+        document.getElementById("startButton").innerText = "START";
+        pause = true;
+        pause_time = time_left;
+    }
+
+}
+
+function toggleTimer(){
+    //plays or pauses timer
+    if(pause){
+        // play
+        pause = false;
+        countdown("countdown", pause_time);
+    }
+    else{
+        // pause
+        pause = true;
+        pause_time = getTimerValue();
+    }
+
+}
+
+function isPaused(){
+    return pause;
+}
+
+
+function displayNotification(title, body){
+    if (!Notification) {
+    alert('Desktop notifications not available in your browser. Try Chromium.');
+    return;
+  }
+
+  if (Notification.permission !== "granted")
+    Notification.requestPermission();
+  else {
+    var notification = new Notification(title, {
+      icon: 'http://cdn.sstatic.net/stackexchange/img/logos/so/so-icon.png',
+      body: body,
+    });
+
+  }
 }
 </script>
 

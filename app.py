@@ -19,14 +19,14 @@ thread_lock = Lock()
 @app.route('/')
 def index():
     session["room_number"] = None
-    return render_template('index.html', async_mode=socketio.async_mode)
+    return render_template('design.html', async_mode=socketio.async_mode)
 
 
 @app.route('/<room>')
 def add_user(room):
     session["room_number"] = room
     print(room)
-    return render_template('index.html', async_mode=socketio.async_mode)
+    return render_template('design.html', async_mode=socketio.async_mode)
 
 
 @socketio.on('connect', namespace='/process')
