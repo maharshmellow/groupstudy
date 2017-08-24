@@ -51,7 +51,7 @@ def disconnect():
     leave_room(session["room_number"])
     print(request.sid, "left room", session["room_number"])
     emit('response',
-         {"data":"Someone Disconnected"},
+         {"data":"disconnect"},
          room=session["room_number"])
     print('Client disconnected', request.sid)
 
@@ -59,7 +59,7 @@ def disconnect():
 @socketio.on('sync_time_event', namespace='/process')
 def sync_time_event(message):
     print("Time Received")
-    emit('sync_time_response', {'time': message['time'], 'paused': message["paused"], 'session': message["session"], "type":message["type"]}, room=session['room_number'] )
+    emit('sync_time_response', {'time': message['time'], 'paused': message["paused"], 'session': message["session"], "type":message["type"], "count":message["count"]}, room=session['room_number'] )
 
 
 @socketio.on('playtoggle_event', namespace='/process')

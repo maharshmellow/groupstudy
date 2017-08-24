@@ -50,8 +50,8 @@
                     </div>
             </div>
             <div class="col-md-4 col-md-pull-4" id="members_section">
-                GROUP MEMBERS CONNECTED <br>
-                <span id="members_online_counter">0</span>
+                MEMBERS CONNECTED <br>
+                <span id="members_online_counter">1</span>
             </div>
 
             <div class="col-md-4" id="sessions_section">
@@ -207,18 +207,21 @@ $(document).ready(function() {
     socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
     // responses
-    socket.on('room_number_response', function(msg) {
-        console.log(msg.room_number);
-    });
-
     socket.on('response', function(msg) {
+        // TODO convert this to a proper disconnect_response
+        if (msg.data == "disconnect"){
+            updateMembersConnected(getMembersConnected() - 1);
+        }
         console.log(msg.data);
     });
 
     socket.on("sync_time_request", function(){
         // called when another user is requesting the timer time
-        socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused(), session: current_session, type:"sync"});
+
+        updateMembersConnected(getMembersConnected() + 1);
+        socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused(), session: current_session, type:"sync", count:getMembersConnected()});
         displayNotification("New User Joined", "A new member has joined the group!");
+
 
     });
 
@@ -226,6 +229,7 @@ $(document).ready(function() {
         // called when the current time is being received
         setTimerValue(msg.time, msg.paused);
         current_session = msg.session;
+        updateMembersConnected(msg.count);
         // console.log(msg.time);
         if (!notifications){
             notifications = true;
@@ -269,10 +273,7 @@ $(document).ready(function() {
         // the notification were disabled before the request was emitted so that the would not appear for this user
         notifications = true;
 
-
     });
-
-
     // emit
     $('form#playtoggle').submit(function(event) {
         if (pause){
@@ -291,7 +292,7 @@ $(document).ready(function() {
     $('form#resetButton').submit(function(event) {
         notifications = false;      // don't want this client to receive a notification for this - will be turned on later
         // tell all connected clients to increase their time by 5 minutes
-        socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session, type:"reset"});
+        socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session, type:"reset", count:getMembersConnected()});
         return false;
 
     });
@@ -299,7 +300,7 @@ $(document).ready(function() {
         notifications = false;      // don't want to receive a notification for this - will be turned on later
         // start the next session (could be a break or a study session)
         current_session = (current_session + 1) % 8;
-        socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session, type:"break"});
+        socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session, type:"break", count:getMembersConnected()});
         return false;
 
     });
@@ -318,7 +319,8 @@ var pause_time = sessions[0];
 
 var notifications = true;
 
-var study_sessions_completed = 0
+var members_connected = 1;
+var study_sessions_completed = 0;
 
 // document.getElementById("countdown").innerHTML = "25:00";
 // set the initial time on the screen
@@ -420,6 +422,15 @@ function displayNotification(title, body){
     });
 
   }
+}
+
+function getMembersConnected(){
+    return members_connected;
+}
+
+function updateMembersConnected(count){
+    members_connected = count;
+    document.getElementById("members_online_counter").innerHTML = members_connected;
 }
 </script>
 
