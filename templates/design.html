@@ -227,6 +227,7 @@ $(document).ready(function() {
         if (msg.data == "connect"){
             // update the invite link with the room number
             document.getElementById("inviteLink").innerHTML = location.protocol + '//' + document.domain + '/' + msg.room;
+            console.log("Invite Link: ",document.getElementById("inviteLink").innerHTML);
         }
         else if (msg.data == "disconnect"){
             // update the online member count
@@ -304,7 +305,7 @@ $(document).ready(function() {
         }
 
         notifications = false;      // don't want this client to receive a notification for this - will be turned on later
-        socket.emit('playtoggle_event', {room: sessionStorage.room_number});
+        socket.emit('playtoggle_event', {room: ""});
         return false;
     });
     $('form#resetButton').submit(function(event) {

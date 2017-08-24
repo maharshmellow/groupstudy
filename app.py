@@ -39,10 +39,10 @@ def connect():
     else:
         # auto join the room from the url
         print("Group")
-        emit('response',{'data': "connect", "room":session["room_number"]},room=session['room_number'])
         socketio.sleep(1)
         emit('sync_time_request', room=session["room_number"])
         join_room(session["room_number"])
+        emit('response',{'data': "connect", "room":session["room_number"]},room=session['room_number'])
 
 
 @socketio.on('disconnect', namespace='/process')
