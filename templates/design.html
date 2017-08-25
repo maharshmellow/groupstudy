@@ -21,12 +21,14 @@
         <div class="row" id="countdown_area">
             <div class="row">
                 <img id="logo" src="../static/images/grouptimer.svg"></img>
+                <a id="credits" href="https://www.maharsh.net">Made by Maharsh</a>
+
             </div>
             <div class="row">
                 <div id="countdown">25:00</div>
             </div>
             <div class="row">
-                <p id="inviteLink" style="display: none;">Random Link</p>
+                <p id="inviteLink" style="display: none;">Something Went Wrong</p>
                 <button id="inviteButton" onclick="copyInviteLink('inviteLink')" data-toggle="tooltip" class="center-block">INVITE</button>
             </div>
         </div>
@@ -75,6 +77,25 @@ html, body {
 #logo{
     padding-left:50px;
     padding-top:20px;
+}
+#credits{
+    padding-right:50px;
+    padding-top:20px;
+    text-align: right;
+    float: right;
+    font-weight: 100;
+    opacity: 0.2;
+}
+#credits:hover{
+    opacity: 1;
+    color: white;
+}
+a {
+  color: white; /* blue colors for links too */
+  text-decoration: none; /* no underline */
+}
+a:hover{
+    text-decoration: none; /* no underline */
 }
 .container-fluid{
     padding-right: 0; /*15px in bootstrap.css*/
@@ -153,14 +174,17 @@ html, body {
     font-size: 8vh;
 }
 
-@media only screen and (max-width: 900px) {
+@media only screen and (max-width: 700px) {
     #members_section, #sessions_section{
         text-align: center;
         padding: 0;
         padding-top: 10px;
     }
     #logo{
-        visibility: hidden;
+        display: none;
+    }
+    #credits{
+        display: none;
     }
     #inviteButton{
         /*visibility: hidden;*/
@@ -178,18 +202,113 @@ html, body {
 <script>
 // var snd1  = new Audio();
 // var src1  = document.createElement("source");
-// src1.type = "audio/mpeg";
+// src1.type = "audio/mp3";
+// src1.src  = "../static/sounds/fire.mp3";
+// snd1.appendChild(src1);
+
+
+
+// var snd1  = new Audio();
+// var src1  = document.createElement("source");
+// src1.type = "audio/ogg";
 // src1.src  = "../static/sounds/fire.ogg";
 // snd1.appendChild(src1);
 //
 // var snd2  = new Audio();
+// snd2.volume = 0.1;
 // var src2  = document.createElement("source");
-// src2.type = "audio/mpeg";
-// src2.src  = "../static/sounds/rain.ogg";
+// src2.src  = "../static/sounds/fan.mp3";
+//
 // snd2.appendChild(src2);
 //
-// snd1.play(); snd2.play();
+// snd2.addEventListener('timeupdate', function(){
+//                 var buffer = 3;
+//                 // console.log(this.currentTime);
+//                 if(this.currentTime > this.duration - buffer){
+//                     // console.log(this.currentTime);
+//                     this.currentTime = 3;
+//                     this.play();
+//                 }}, false);
+//
+// //
+// // snd1.play();
+// snd2.play();
 
+// fan_audio = new Audio("../static/sounds/fan.mp3");
+// fan_audio.volume = 0.1
+// fan_audio.addEventListener('ended', function() {
+//     // this.currentTime = 0;
+//     this.currentTime = 3;
+//     this.play();
+// }, false);
+// fan_audio.play();
+
+
+// cafe_audio = new Audio("../static/sounds/coffee.mp3");
+// cafe_audio.volume = 0.3;
+// cafe_audio.addEventListener('ended', function() {
+//     // this.currentTime = 0;
+//     this.currentTime = 0;
+//     this.play();
+// }, false);
+// cafe_audio.play();
+
+
+rain_audio = new Audio("../static/sounds/rain.mp3");
+rain_audio.volume = 0.8;
+rain_audio.addEventListener('ended', function() {
+    // this.currentTime = 0;
+    this.currentTime = 0;
+    this.play();
+}, false);
+rain_audio.play();
+
+thunder_audio = new Audio("../static/sounds/thunderstorm.mp3");
+thunder_audio.volume = 0.5;
+thunder_audio.addEventListener('ended', function() {
+    // this.currentTime = 0;
+    this.currentTime = 0;
+    this.play();
+}, false);
+thunder_audio.play();
+
+wind_audio = new Audio("../static/sounds/wind.mp3");
+wind_audio.volume = 0.4;
+wind_audio.addEventListener('ended', function() {
+    // this.currentTime = 0;
+    this.currentTime = 0;
+    this.play();
+}, false);
+wind_audio.play();
+
+leaves_audio = new Audio("../static/sounds/leaves.mp3");
+leaves_audio.volume = 0.4;
+leaves_audio.addEventListener('ended', function() {
+    // this.currentTime = 0;
+    this.currentTime = 0;
+    this.play();
+}, false);
+leaves_audio.play();
+
+fire_audio = new Audio("../static/sounds/fire.mp3");
+fire_audio.volume = 0.2;
+fire_audio.addEventListener('ended', function() {
+    // this.currentTime = 0;
+    this.currentTime = 0;
+    this.play();
+}, false);
+fire_audio.play();
+
+whitenoise_audio = new Audio("../static/sounds/whitenoise.mp3");
+whitenoise_audio.volume = 0.05;
+whitenoise_audio.addEventListener('ended', function() {
+    // this.currentTime = 0;
+    this.currentTime = 0;
+    this.play();
+}, false);
+whitenoise_audio.play();
+
+var sources = [rain_audio, thunder_audio, wind_audio, leaves_audio, fire_audio, whitenoise_audio];
 
 function copyInviteLink(elementId) {
   var aux = document.createElement("input");
@@ -201,16 +320,35 @@ function copyInviteLink(elementId) {
 
   // change the text of the button
   document.getElementById("inviteButton").innerText = "COPIED TO CLIPBOARD";
-  // document.getElementById("inviteButton").style.backgroundColor = "#E71D4A";
 
   setInterval(function () {
      //set the inner html, parse the value from the inner html as well
      document.getElementById("inviteButton").innerText = "INVITE";
-    //  document.getElementById("inviteButton").style.backgroundColor = "#C41943";
  }, 3000);
 
 
 }
+
+function muteAll(){
+    for (source in sources){
+        console.log(source);
+        sources[source].muted = true;
+    }
+};
+
+
+
+function unmuteAll(){
+    for (source in sources){
+        console.log(source);
+        sources[source].muted = false;
+    }
+};
+
+muteAll();
+
+
+
 
 var socket = null;
 $(document).ready(function() {
@@ -293,12 +431,14 @@ $(document).ready(function() {
         console.log("Pause");
 
         if (pause){
+            muteAll();
             document.getElementById("startButton").innerText = "START";
             if (notifications){
                 displayNotification("Paused", "A group member has paused the timer.");
             }
         }
         else{
+            unmuteAll();
             document.getElementById("startButton").innerText = "PAUSE";
             if (notifications){
                 displayNotification("Resume", "A group member has resumed the timer.");
