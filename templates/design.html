@@ -22,9 +22,12 @@
         <div class="row" id="countdown_area">
             <div class="row">
 
-                <audio loop autoplay>
+                <audio loop autoplay id="audio_rain">
                     <source src="../static/sounds/rain/rain.ogg" preload="auto" >
                 </audio>
+                <!-- <audio loop autoplay>
+                    <source src="../static/sounds/rain/rain.ogg" preload="auto" >
+                </audio> -->
 
 
                 <img id="logo" src="../static/images/grouptimer.svg"></img>
@@ -227,19 +230,18 @@ function copyInviteLink(elementId) {
 
 }
 
+var audio_sources = ["audio_rain"];
 function muteAll(){
-    for (source in sources){
-        console.log(source);
-        sources[source].muted = true;
+    for (source in audio_sources){
+        document.getElementById(audio_sources[source]).pause();
     }
 };
 
 
 
 function unmuteAll(){
-    for (source in sources){
-        console.log(source);
-        sources[source].muted = false;
+    for (source in audio_sources){
+        document.getElementById(audio_sources[source]).play();
     }
 };
 
