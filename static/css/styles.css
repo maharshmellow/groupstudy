@@ -1,15 +1,131 @@
 html, body {
     position: relative;
     height: 100%;
-    background-color: white;
-    overflow-y: hidden;
-    /*background: #FFFFFF;*/
-    color: #463C70;
+    overflow-x: hidden;
+    background: #170420;
+    font-family: "trakr_fancy";
+}
+#logo{
+    padding-left:50px;
+    padding-top:20px;
+}
+#credits{
+    padding-right:50px;
+    padding-top:20px;
+    text-align: right;
+    float: right;
+    font-weight: 100;
+    opacity: 0.2;
+}
+#credits:hover{
+    opacity: 1;
+    color: white;
+}
+a {
+  color: white; /* blue colors for links too */
+  text-decoration: none; /* no underline */
+}
+a:hover{
+    text-decoration: none; /* no underline */
+}
+.container-fluid{
+    padding-right: 0; /*15px in bootstrap.css*/
+    padding-left: 0;  /*idem*/
+    margin-right: auto;
+    margin-left: auto;
 }
 
+#countdown_area{
+    background-color: #170420;
+    height: 85vh;
+    color: white;
+}
+#countdown{
+    font-size: 15vw;
+    text-align: center;
+    line-height: 60vh;
+    font-weight: 100;
+}
+#inviteButton{
+    background-color: #C41943;
+    border: none;
+    padding: 20px;
+    width: 200px;
+    outline: 0;
+}
 
+#control_area{
+    background-color: #F1EFF8;
+    /*height:15vh;*/
+}
+.control_text{
+    color: #170420;
+    padding: 0;
+}
+.control_item{
+    height: 15vh;
+}
+.sideButtons{
+    background-color: #C41943;
+    border: none;
+    font-weight: 100;
+    color: #F1EFF8;
+    outline: 0;
+}
+#startButton{
+    background-color: #E71D4A;
+    border: none;
+    font-size: 25px;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+    color: #F1EFF8;
+    outline: 0;
 
+}
 
-/*@media only screen and (max-width: 500px) {
+#members_section{
+    color: #170420;
+    text-align: left;
+    padding-left: 30px;
+    padding-top: 10px;
+    letter-spacing: -0.5px;
+    font-size: 16px;
+}
 
-}*/
+#sessions_section{
+    color: #170420;
+    text-align: right;
+    padding-right: 30px;
+    padding-top: 10px;
+    letter-spacing: -0.5px;
+    font-size: 16px;
+
+}
+#members_online_counter, #study_session_counter{
+    font-size: 8vh;
+}
+
+@media only screen and (max-width: 700px) {
+    #members_section, #sessions_section{
+        text-align: center;
+        padding: 0;
+        padding-top: 10px;
+    }
+    #logo{
+        display: none;
+    }
+    #credits{
+        display: none;
+    }
+    #inviteButton{
+        /*visibility: hidden;*/
+        position: absolute;
+        left: 0px;
+        bottom: 15vh;
+        padding: 10px;
+        width: 100%;
+        background-color: #170420;
+
+    }
+
+}
