@@ -434,10 +434,12 @@ function countdown(elementName, milliseconds){
             element.innerHTML = (hours ? hours + ':' + twoDigits(mins) : mins) + ':' + twoDigits(time.getUTCSeconds());
             setTimeout(updateTimer, time.getUTCMilliseconds() + 500);
 
+
+
         }
     }
     element = document.getElementById(elementName);
-    endTime = (+new Date) + milliseconds;
+    endTime = (+new Date) + milliseconds + 500;
     updateTimer();
 
 }
@@ -469,7 +471,15 @@ function toggleTimer(){
     if(pause){
         // play
         pause = false;
-        countdown("countdown", pause_time);
+        if (pause_time == sessions[current_session]){
+            // if this is the first play of the sesssion - don't want to skip 500 ms
+            countdown("countdown", pause_time);
+        }
+        else{
+            // need to skip 500ms to keep it accurate when doing pause/play really quick
+            countdown("countdown", pause_time-500);
+        }
+
     }
     else{
         // pause
