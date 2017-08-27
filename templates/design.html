@@ -247,6 +247,7 @@ $('form#breakToggle').submit(function(event) {
 var socket = false;
 
 if ($(location).attr('pathname') != "/"){
+    console.log("before init connection path", $(location).attr('pathname'));
     init_socket_connection();
 }
 
