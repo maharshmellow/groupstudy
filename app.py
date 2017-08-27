@@ -17,6 +17,13 @@ socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock()
 
+def pinging_thread():
+    # pinging all the connections every 25 seconds to keep heroku connection alive
+    while True:
+        socketio.sleep(25)
+        socketio.emit('response',
+                      {'data': 'ping'},
+                      namespace='/process')
 
 @app.route('/')
 def index():
@@ -35,6 +42,14 @@ def add_user(room):
 
 @socketio.on('connect', namespace='/process')
 def connect():
+
+    # start the pinging thread
+    global thread
+    with thread_lock:
+        if thread is None:
+            thread = socketio.start_background_task(target=pinging_thread)
+
+
     print("Connected: ", session["room_number"])
     socketio.sleep(1)
     emit('sync_time_request', room=session["room_number"])
@@ -73,11 +88,6 @@ def broadcast_message(message):
 @socketio.on("notification_event", namespace="/process")
 def notification_event(message):
     emit("notification_response", {"title":message["title"], "body":message["body"]}, room=session['room_number'])
-
-
-@socketio.on('my_ping', namespace='/process')
-def ping_pong():
-    emit('my_pong')
 
 
 if __name__ == '__main__':

@@ -106,6 +106,7 @@ function response_handler(msg){
     if (msg.data == "disconnect") {
         // update the online member count
         updateMembersConnected(getMembersConnected() - 1);
+
     }
     console.log(msg);
 }
@@ -405,6 +406,7 @@ var audio_sources = ["audio_rain"];
 // var muted = false;
 
 function toggleMusic(isBreak, isPaused, fade){
+    // pauses or plays the music
     console.log(isBreak, isPaused, fade);
 
     for (source in audio_sources) {
