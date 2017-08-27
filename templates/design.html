@@ -107,7 +107,7 @@ function response_handler(msg){
         // update the online member count
         updateMembersConnected(getMembersConnected() - 1);
     }
-    console.log(msg.data);
+    console.log(msg);
 }
 
 function sync_time_request_handler(msg){
