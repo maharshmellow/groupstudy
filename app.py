@@ -26,10 +26,10 @@ def index():
     return render_template('design.html', invite_url=session["room_number"], async_mode=socketio.async_mode)
 
 
-@app.route('/<room>')
+@app.route('/r/<room>')
 def add_user(room):
     session["room_number"] = room
-    print("Before Connecting: ", session["room_number"])
+    print("Before Connecting2: ", session["room_number"])
     return render_template('design.html', invite_url=session["room_number"], async_mode=socketio.async_mode)
 
 
