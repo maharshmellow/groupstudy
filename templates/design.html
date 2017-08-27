@@ -463,10 +463,10 @@
         for (source in audio_sources) {
             var a = document.getElementById(source);
 
-            if (isBreak()) {
+            if (isBreak() || isPaused()) {
                 a.volume = 0;
             } else {
-                a.volume = volume;
+                a.volume = audio_sources[source];
             }
 
             a.play();
