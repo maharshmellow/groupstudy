@@ -3,6 +3,8 @@ from threading import Lock
 from flask import Flask, render_template, session, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
+import random
+import string
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
@@ -18,31 +20,34 @@ thread_lock = Lock()
 
 @app.route('/')
 def index():
-    session["room_number"] = None
-    return render_template('design.html', async_mode=socketio.async_mode)
+    room_number = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(10))
+    session["room_number"] = room_number
+
+    return render_template('design.html', invite_url=room_number, async_mode=socketio.async_mode)
 
 
 @app.route('/<room>')
 def add_user(room):
     session["room_number"] = room
     print(room)
-    return render_template('design.html', async_mode=socketio.async_mode)
+    return render_template('design.html', invite_url=room, async_mode=socketio.async_mode)
 
 
 @socketio.on('connect', namespace='/process')
 def connect():
-    if not session["room_number"]:
-        session['room_number'] = request.sid
-        join_room(session["room_number"])
-        print("Alone")
-        emit('response',{'data': "connect", "room":session["room_number"]},room=session['room_number'])
-    else:
-        # auto join the room from the url
-        print("Group")
-        socketio.sleep(1)
-        emit('sync_time_request', room=session["room_number"])
-        join_room(session["room_number"])
-        emit('response',{'data': "connect", "room":session["room_number"]},room=session['room_number'])
+    print("Connected: ", session["room_number"])
+    # if not session["room_number"]:
+    #     session['room_number'] = request.sid
+    #     join_room(session["room_number"])
+    #     print("Alone")
+    #     emit('response',{'data': "connect", "room":session["room_number"]},room=session['room_number'])
+    # else:
+    #     # auto join the room from the url
+    # print("Group")
+    socketio.sleep(1)
+    emit('sync_time_request', room=session["room_number"])
+    join_room(session["room_number"])
+    emit('response',{'data': "connect", "room":session["room_number"]},room=session['room_number'])
 
 
 @socketio.on('disconnect', namespace='/process')
