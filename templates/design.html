@@ -102,7 +102,6 @@ function init_socket_connection(){
 }
 
 function response_handler(msg){
-    // TODO convert this to a proper disconnect_response
     if (msg.data == "disconnect") {
         // update the online member count
         updateMembersConnected(getMembersConnected() - 1);
@@ -130,15 +129,18 @@ function sync_time_response_handler(msg){
     updateMembersConnected(msg.count);
     toggleMusic(isBreak(), msg.paused, false);
 
+    if (isBreak()){
+        document.getElementById("startButton").style.backgroundColor = "#170420";
+    }else{
+        document.getElementById("startButton").style.backgroundColor = "#E71D4A";
+    }
+
     if (!notifications) {
         notifications = true;
         return;
     }
 
-    if (msg.type == "reset") {
-        displayNotification("RESET", "A group member has reset the timer.");
-    } else if (msg.type == "break") {
-
+    if (msg.type == "break") {
         if (current_session % 2 == 0) {
             // study session
             displayNotification("STUDY", "A group member has started the study session.");
@@ -165,6 +167,8 @@ function playtoggle_response_handler(msg){
             displayNotification("Resume", "A group member has resumed the timer.");
         }
     }
+
+
 
     // the notification were disabled before the request was emitted so that the would not appear for this user
     notifications = true;
@@ -321,6 +325,12 @@ function setTimerValue(time_left, paused) {
         pause = true;
         pause_time = time_left;
     }
+
+    if (isBreak()){
+        document.getElementById("startButton").style.backgroundColor = "#170420";
+    }else{
+        document.getElementById("startButton").style.backgroundColor = "#E71D4A";
+    }
 }
 
 function toggleTimer() {
@@ -451,7 +461,13 @@ function unmute(volume){
     for (source in audio_sources) {
         var a = document.getElementById(audio_sources[source]);
 
-        a.volume = volume;
+        if (isBreak()){
+            a.volume = 0;
+        }
+        else{
+            a.volume = volume;
+        }
+
         a.play();
     }
 }
