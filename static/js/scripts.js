@@ -1,156 +1,158 @@
 // Socket Connections
 var socket = null;
-$(document).ready(function() {
+// $(document).ready(function() {
 
-    // request permission on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        if (Notification.permission !== "granted")
-            Notification.requestPermission();
+// request permission on page load
+document.addEventListener('DOMContentLoaded', function() {
+    if (Notification.permission !== "granted")
+        Notification.requestPermission();
+});
+
+// Use a "/process" namespace.
+// An application can open a connection on multiple namespaces, and
+// Socket.IO will multiplex all those connections on a single
+// physical channel. If you don't care about multiple channels, you
+// can set the namespace to an empty string.
+namespace = '/process';
+
+// Connect to the Socket.IO server.
+// The connection URL has the following format:
+//     http[s]://<domain>:<port>[/<namespace>]
+socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+// responses
+socket.on('response', function(msg) {
+    // TODO convert this to a proper disconnect_response
+
+    if (msg.data == "connect") {
+        // update the invite link with the room number
+        document.getElementById("inviteLink").innerHTML = location.protocol + '//' + document.domain + '/' + msg.room;
+        console.log("Invite Link: ", document.getElementById("inviteLink").innerHTML);
+    } else if (msg.data == "disconnect") {
+        // update the online member count
+        updateMembersConnected(getMembersConnected() - 1);
+    }
+
+    console.log(msg.data);
+});
+
+socket.on("sync_time_request", function() {
+    // called when another user is requesting the timer time
+
+    updateMembersConnected(getMembersConnected() + 1);
+    socket.emit('sync_time_event', {
+        time: getTimerValue(),
+        paused: isPaused(),
+        session: current_session,
+        type: "sync",
+        count: getMembersConnected()
     });
-
-    // Use a "/process" namespace.
-    // An application can open a connection on multiple namespaces, and
-    // Socket.IO will multiplex all those connections on a single
-    // physical channel. If you don't care about multiple channels, you
-    // can set the namespace to an empty string.
-    namespace = '/process';
-
-    // Connect to the Socket.IO server.
-    // The connection URL has the following format:
-    //     http[s]://<domain>:<port>[/<namespace>]
-    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-
-    // responses
-    socket.on('response', function(msg) {
-        // TODO convert this to a proper disconnect_response
-
-        if (msg.data == "connect") {
-            // update the invite link with the room number
-            document.getElementById("inviteLink").innerHTML = location.protocol + '//' + document.domain + '/' + msg.room;
-            console.log("Invite Link: ", document.getElementById("inviteLink").innerHTML);
-        } else if (msg.data == "disconnect") {
-            // update the online member count
-            updateMembersConnected(getMembersConnected() - 1);
-        }
-
-        console.log(msg.data);
-    });
-
-    socket.on("sync_time_request", function() {
-        // called when another user is requesting the timer time
-
-        updateMembersConnected(getMembersConnected() + 1);
-        socket.emit('sync_time_event', {
-            time: getTimerValue(),
-            paused: isPaused(),
-            session: current_session,
-            type: "sync",
-            count: getMembersConnected()
-        });
-        displayNotification("New User Joined", "A new member has joined the group!");
-
-
-    });
-
-    socket.on('sync_time_response', function(msg) {
-        // called when the current time is being received
-        setTimerValue(msg.time, msg.paused);
-        current_session = msg.session;
-        updateMembersConnected(msg.count);
-        // console.log(msg.time);
-        if (!notifications) {
-            notifications = true;
-            return;
-        }
-
-        if (msg.type == "reset") {
-            displayNotification("RESET", "A group member has reset the timer.");
-        } else if (msg.type == "break") {
-            if (current_session % 2 == 0) {
-                // study session
-                unmuteAll();
-                displayNotification("STUDY", "A group member has started the study session.");
-            } else {
-                muteAll();
-                displayNotification("BREAK", "A group member has started the break session.");
-            }
-        }
-        notifications = true;
-
-
-    });
-
-    socket.on('playtoggle_response', function(msg) {
-        toggleTimer();
-        console.log("Pause");
-
-        if (pause) {
-            muteAll();
-            document.getElementById("startButton").innerText = "START";
-            if (notifications) {
-                displayNotification("Paused", "A group member has paused the timer.");
-            }
-        } else {
-            unmuteAll();
-            document.getElementById("startButton").innerText = "PAUSE";
-            if (notifications) {
-                displayNotification("Resume", "A group member has resumed the timer.");
-            }
-        }
-
-        // the notification were disabled before the request was emitted so that the would not appear for this user
-        notifications = true;
-
-    });
-    // emit
-    $('form#playtoggle').submit(function(event) {
-        if (pause) {
-            document.getElementById("startButton").innerText = "START";
-        } else {
-            document.getElementById("startButton").innerText = "PAUSE";
-        }
-
-        notifications = false; // don't want this client to receive a notification for this - will be turned on later
-        socket.emit('playtoggle_event', {
-            room: ""
-        });
-        return false;
-    });
-    $('form#resetButton').submit(function(event) {
-        notifications = false; // don't want this client to receive a notification for this - will be turned on later
-        // tell all connected clients to increase their time by 5 minutes
-        socket.emit('sync_time_event', {
-            time: sessions[current_session],
-            paused: isPaused(),
-            session: current_session,
-            type: "reset",
-            count: getMembersConnected()
-        });
-        return false;
-
-    });
-    $('form#breakToggle').submit(function(event) {
-        notifications = false; // don't want to receive a notification for this - will be turned on later
-        // start the next session (could be a break or a study session)
-        current_session = (current_session + 1) % 8;
-        socket.emit('sync_time_event', {
-            time: sessions[current_session],
-            paused: isPaused(),
-            session: current_session,
-            type: "break",
-            count: getMembersConnected()
-        });
-        return false;
-
-    });
+    displayNotification("New User Joined", "A new member has joined the group!");
 
 
 });
 
+socket.on('sync_time_response', function(msg) {
+    // called when the current time is being received
+    setTimerValue(msg.time, msg.paused);
+    current_session = msg.session;
+    updateMembersConnected(msg.count);
+    toggleMusic(isBreak(), msg.paused);
+
+    if (!notifications) {
+        notifications = true;
+        return;
+    }
+
+    if (msg.type == "reset") {
+        displayNotification("RESET", "A group member has reset the timer.");
+    } else if (msg.type == "break") {
+
+        if (current_session % 2 == 0) {
+            // study session
+            displayNotification("STUDY", "A group member has started the study session.");
+        } else {
+            displayNotification("BREAK", "A group member has started the break session.");
+        }
+    }
+    notifications = true;
+
+
+});
+
+socket.on('playtoggle_response', function(msg) {
+    toggleTimer();
+    console.log("Pause");
+    toggleMusic(isBreak(), !isPaused());
+
+    if (isPaused()) {
+        // toggleMusic(isBreak(), true);
+        document.getElementById("startButton").innerText = "START";
+        if (notifications) {
+            displayNotification("Paused", "A group member has paused the timer.");
+        }
+    } else {
+        // toggleMusic(isBreak(), false);
+        document.getElementById("startButton").innerText = "PAUSE";
+        if (notifications) {
+            displayNotification("Resume", "A group member has resumed the timer.");
+        }
+    }
+
+    // the notification were disabled before the request was emitted so that the would not appear for this user
+    notifications = true;
+
+});
+// emit
+$('form#playtoggle').submit(function(event) {
+    toggleMusic(isBreak(), isPaused());
+
+    if (pause) {
+        document.getElementById("startButton").innerText = "START";
+    } else {
+        document.getElementById("startButton").innerText = "PAUSE";
+    }
+
+    notifications = false; // don't want this client to receive a notification for this - will be turned on later
+    socket.emit('playtoggle_event', {
+        room: ""
+    });
+    return false;
+});
+$('form#resetButton').submit(function(event) {
+    notifications = false; // don't want this client to receive a notification for this - will be turned on later
+    // tell all connected clients to increase their time by 5 minutes
+    socket.emit('sync_time_event', {
+        time: sessions[current_session],
+        paused: isPaused(),
+        session: current_session,
+        type: "reset",
+        count: getMembersConnected()
+    });
+    return false;
+
+});
+$('form#breakToggle').submit(function(event) {
+    notifications = false; // don't want to receive a notification for this - will be turned on later
+    toggleTimer(!isBreak(), isPaused());
+    // start the next session (could be a break or a study session)
+    // current_session = ;
+    socket.emit('sync_time_event', {
+        time: sessions[(current_session + 1) % 8],
+        paused: isPaused(),
+        session: (current_session + 1) % 8,
+        type: "break",
+        count: getMembersConnected()
+    });
+    return false;
+
+});
+
+
 // timer
 
 
-var sessions = [15000, 30000, 15000, 3000, 15000, 3000, 15000, 9000]; // [study, break, study, break ...]
+var sessions = [15000, 3000, 15000, 3000, 15000, 3000, 15000, 9000]; // [study, break, study, break ...]
 var current_session = 0;
 
 var pause = true;
@@ -179,11 +181,12 @@ function countdown(elementName, milliseconds) {
             // break and study notifications
             if (current_session % 2 == 0) {
                 // study session
-                unmuteAll();
+                // unmuteAll();
+                toggleMusic(false, false);
                 displayNotification("STUDY", "Time to study!");
 
             } else {
-                muteAll();
+                toggleMusic(true, false);
                 displayNotification("BREAK", "Time for a break!");
                 study_sessions_completed += 1;
                 document.getElementById("study_session_counter").innerHTML = study_sessions_completed;
@@ -220,6 +223,17 @@ function setTimerValue(time_left, paused) {
         pause = true;
         pause_time = time_left;
     }
+
+
+    // if (paused() && !isBreak()){
+    //     console.log("unmute");
+    //     unmuteAll();
+    // }
+    // else{
+    //     console.log("mute");
+    //     muteAll();
+    // }
+
 }
 
 function toggleTimer() {
@@ -241,6 +255,13 @@ function toggleTimer() {
 
 function isPaused() {
     return pause;
+}
+
+function isBreak(){
+    if (current_session % 2 == 0) {
+        return false;
+    }
+    return true;
 }
 
 
@@ -285,14 +306,13 @@ function copyInviteLink(elementId) {
         //set the inner html, parse the value from the inner html as well
         document.getElementById("inviteButton").innerText = "INVITE";
     }, 3000);
-
-
 }
 
 
 // music
-
 var audio_sources = ["audio_rain"];
+var muted = false;
+
 
 function muteAll() {
     for (source in audio_sources) {
@@ -314,4 +334,16 @@ function unmuteAll() {
     }
 };
 
-muteAll();
+
+function toggleMusic(isBreak, isPaused){
+    if (!isBreak && !isPaused){
+        unmuteAll();
+    }
+    else{
+        muteAll();
+    }
+}
+
+// muteAll();
+
+toggleMusic(isBreak(), isPaused());
