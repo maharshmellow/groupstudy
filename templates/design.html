@@ -49,8 +49,8 @@
                         </form>
                     </div>
                     <div class="col-md-2 col-md-pull-8 control_text">
-                        <form id="resetButton" method="POST" action="#">
-                            <button class="sideButtons control_item btn-block">RESET</button>
+                        <form id="muteToggle" method="POST" action="#">
+                            <button id="muteButton" class="sideButtons control_item btn-block">MUTE</button>
                         </form>
                     </div>
 
@@ -197,18 +197,15 @@ $('form#playtoggle').submit(function(event) {
     });
     return false;
 });
-$('form#resetButton').submit(function(event) {
-    notifications = false; // don't want this client to receive a notification for this - will be turned on later
+$('form#muteToggle').submit(function(event) {
+    if (muted){
+        unmute(1);
+        document.getElementById("muteButton").innerText = "MUTE";
+    }else{
+        mute();
+        document.getElementById("muteButton").innerText = "UNMUTE";
+    }
 
-
-    // tell all connected clients to increase their time by 5 minutes
-    socket.emit('sync_time_event', {
-        time: sessions[current_session],
-        paused: isPaused(),
-        session: current_session,
-        type: "reset",
-        count: getMembersConnected()
-    });
     return false;
 
 });
@@ -438,24 +435,27 @@ function toggleMusic(isBreak, isPaused, fade){
         }
     }
 }
+var muted = false;
 
 function mute(){
+    muted = true;
     for (source in audio_sources) {
         var a = document.getElementById(audio_sources[source]);
         a.pause();
     }
 }
 function unmute(volume){
+    muted = false;
     for (source in audio_sources) {
         var a = document.getElementById(audio_sources[source]);
-        // at the start of the program, volume = 0 but everything is "playing" in the background
-        // when the mute button is toggled, we make the volume 1 so that it starts instantly
+
         a.volume = volume;
         a.play();
     }
 }
 
-// keep the music playing until the mute button is clicked
+// at the start of the program, volume = 0
+// it is "playing" in the background so that when the mute button is toggled, we make the volume 1 so that it starts instantly instead of having to load
 unmute(0);
 
 </script>
