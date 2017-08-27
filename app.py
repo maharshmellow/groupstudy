@@ -42,7 +42,6 @@ def add_user(room):
 
 @socketio.on('connect', namespace='/process')
 def connect():
-
     # start the pinging thread
     global thread
     with thread_lock:
