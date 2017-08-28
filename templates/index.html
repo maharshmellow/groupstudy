@@ -1,223 +1,88 @@
 <!DOCTYPE HTML>
 <html>
+
 <head>
-    <title>Flask-SocketIO Test</title>
-    <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
-    <script type="text/javascript" charset="utf-8">
-    var socket = null;
-        $(document).ready(function() {
+    <!-- <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script> -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <title>Group Study Timer - Maharsh Patel</title>
+    <meta charset="utf-8" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.0.4/howler.min.js"></script>
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../static/css/fonts.css" type="text/css" />
+    <link rel="stylesheet" href="../static/css/styles.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-            // request permission on page load
-            document.addEventListener('DOMContentLoaded', function () {
-              if (Notification.permission !== "granted")
-                Notification.requestPermission();
-            });
-
-            // Use a "/process" namespace.
-            // An application can open a connection on multiple namespaces, and
-            // Socket.IO will multiplex all those connections on a single
-            // physical channel. If you don't care about multiple channels, you
-            // can set the namespace to an empty string.
-            namespace = '/process';
-
-            // Connect to the Socket.IO server.
-            // The connection URL has the following format:
-            //     http[s]://<domain>:<port>[/<namespace>]
-            socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-
-            // responses
-            socket.on('room_number_response', function(msg) {
-                $('#log').append('<br>' + $('<div/>').text(msg.room_number).html());
-            });
-
-            socket.on('response', function(msg) {
-                $('#log').append('<br>' + $('<div/>').text(msg.data).html());
-            });
-
-            socket.on("sync_time_request", function(){
-                // called when another user is requesting the timer time
-                socket.emit('sync_time_event', {time: getTimerValue(), paused: isPaused(), session: current_session});
-            });
-
-            socket.on('sync_time_response', function(msg) {
-                // called when the current time is being received
-                setTimerValue(msg.time, msg.paused);
-                current_session = msg.session;
-                $('#log').append('<br>' + $('<div/>').text(msg.time).html());
-            });
-
-            socket.on('playtoggle_response', function(msg) {
-                toggleTimer();
-                $('#log').append('<br>' + $('<div/>').text("Pause").html());
-                // TODO notification here
-                if (pause && notifications){
-                    console.log(1);
-                    displayNotification("Paused", "A group member has paused the timer.");
-                }
-                else if (notifications){
-                    console.log(2);
-                    displayNotification("Resume", "A group member has resumed the timer.");
-                }
-
-                // the notification were disabled before the request was emitted so that the would not appear for this user
-                notifications = true;
-
-
-            });
-
-
-            // emit
-            $('form#playtoggle').submit(function(event) {
-                notifications = false;      // don't want to receive a notification for this - will be turned on later
-                socket.emit('playtoggle_event', {room: sessionStorage.room_number});
-                // $('#log').append('<br>' + $('<div/>').text("Sent Pause Signal").html());
-
-                return false;
-            });
-            $('form#increaseTimeButton').submit(function(event) {
-                // tell all connected clients to increase their time by 5 minutes
-                socket.emit('sync_time_event', {time: getTimerValue()+299500, paused: isPaused(), session:current_session});
-                return false;
-
-            });
-            $('form#resetButton').submit(function(event) {
-                // tell all connected clients to increase their time by 5 minutes
-                socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session});
-                return false;
-
-            });
-            $('form#breakToggle').submit(function(event) {
-                // start the next session (could be a break or a study session)
-                current_session = (current_session + 1) % 8;
-                socket.emit('sync_time_event', {time: sessions[current_session], paused: isPaused(), session:current_session});
-                return false;
-
-            });
-
-        });
-    </script>
 </head>
+
 <body>
-    <div id="countdown"></div>
+    <div class="container-fluid">
+        <div class="row" id="countdown_area">
+            <div class="row">
 
-    <!-- <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p> -->
-    <h2>Send:</h2>
-    <form id="playtoggle" method="POST" action="#">
-        <input type="submit" value="Play/Pause">
-    </form>
-    <form id="increaseTimeButton" method="POST" action="#">
-        <input type="submit" value="Increase Time">
-    </form>
-    <form id="resetButton" method="POST" action="#">
-        <input type="submit" value="Reset">
-    </form>
-    <form id="breakToggle" method="POST" action="#">
-        <input type="submit" value="Toggle Break">
-    </form>
-    <h2>Receive:</h2>
-    <div id="log"></div>
+                <audio loop id="rain">
+                    <source src="../static/sounds/rain/rain.ogg" preload="auto">
+                    <source src="../static/sounds/rain/rain.mp3" preload="auto">
+                </audio>
+                <audio loop id="thunderstorm">
+                    <source src="../static/sounds/thunderstorm/thunderstorm.ogg" preload="auto">
+                    <source src="../static/sounds/thunderstorm/thunderstorm.mp3" preload="auto">
+                </audio>
+                <audio loop id="fan">
+                    <source src="../static/sounds/fan/fan.ogg" preload="auto">
+                    <source src="../static/sounds/fan/fan.mp3" preload="auto">
+                </audio>
+                <audio loop id="whitenoise">
+                    <source src="../static/sounds/whitenoise/whitenoise.ogg" preload="auto">
+                    <source src="../static/sounds/whitenoise/whitenoise.mp3" preload="auto">
+                </audio>
+
+                <img id="logo" class="undraggable" src="../static/images/grouptimer.svg?a=3"></img>
+                <a id="credits" href="https://www.maharsh.net">Made by Maharsh</a>
+
+            </div>
+            <div class="row">
+                <div id="countdown">25:00</div>
+            </div>
+            <div class="row">
+                <p id="inviteLink" style="display: none;">{{ invite_url }}</p>
+                <button id="inviteButton" onclick="copyInviteLink('inviteLink')" data-toggle="tooltip" class="center-block">INVITE</button>
+            </div>
+        </div>
+        <div class="row" id="control_area">
+            <div class="col-md-4 col-md-push-4">
+                <div class="col-md-6 col-md-push-3 control_text">
+                    <form id="playtoggle" method="POST" action="#">
+                        <button id="startButton" class="control_item btn-block">START</button>
+                    </form>
+                </div>
+                <div class="col-md-3 col-md-pull-6 control_text">
+                    <form id="muteToggle" method="POST" action="#">
+                        <button id="muteButton" class="sideButtons control_item btn-block">MUTE</button>
+                    </form>
+                </div>
+
+                <div class="col-md-3 control_text">
+                    <form id="breakToggle" method="POST" action="#">
+                        <button class="sideButtons control_item btn-block">SKIP</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-4 col-md-pull-4" id="members_section">
+                MEMBERS CONNECTED <br>
+                <span id="members_online_counter">1</span>
+            </div>
+
+            <div class="col-md-4" id="sessions_section">
+                STUDY SESSIONS COMPLETED <br>
+                <span id="study_session_counter">0</span>
+            </div>
+        </div>
+
+    </div>
 </body>
+<script type="text/javascript" src="../static/js/scripts.js"></script>
 
-<script>
-var element, endTime, hours, mins, msLeft, time;
-var pause = true;
-
-
-var sessions = [15000, 30000, 15000, 3000, 15000, 3000, 15000, 9000];        // [study, break, study, break ...]
-var current_session = 0;
-var pause_time = sessions[0];
-
-var notifications = true;
-
-document.getElementById("countdown").innerHTML = "25:00";
-// set the initial time on the screen
-// document.getElementById("countdown").innerHTML = ("25:00");
-
-function countdown(elementName, milliseconds){
-    function twoDigits(n){
-        return (n <= 9 ? "0" + n : n);
-    }
-
-    function updateTimer(){
-        // if the timer is paused then don't do any updates to the time
-        if (pause){
-            return 1;
-        }
-        msLeft = endTime - (+new Date);
-
-        if (msLeft < 0) {
-            current_session = (current_session + 1) % 8;
-            setTimerValue(sessions[current_session], false);
-
-        }
-        else{
-            time = new Date(msLeft);
-            hours = time.getUTCHours();
-            mins = time.getUTCMinutes();
-            element.innerHTML = (hours ? hours + ':' + twoDigits(mins) : mins) + ':' + twoDigits(time.getUTCSeconds());
-            setTimeout(updateTimer, time.getUTCMilliseconds() + 500);
-
-        }
-    }
-    element = document.getElementById(elementName);
-    endTime = (+new Date) + milliseconds + 500;
-    updateTimer();
-
-}
-
-// countdown("countdown", 1500000);
-
-
-function getTimerValue(){
-    return(msLeft);
-}
-
-function setTimerValue(time_left, paused){
-    pause = false;
-    countdown("countdown", time_left);
-    if (paused){
-        pause = true;
-        pause_time = time_left;
-    }
-
-}
-
-function toggleTimer(){
-    //plays or pauses timer
-    if(pause){
-        // play
-        pause = false;
-        countdown("countdown", pause_time);
-    }
-    else{
-        // pause
-        pause = true;
-        pause_time = getTimerValue();
-    }
-
-}
-
-function isPaused(){
-    return pause;
-}
-
-
-function displayNotification(title, body){
-    if (!Notification) {
-    alert('Desktop notifications not available in your browser. Try Chromium.');
-    return;
-  }
-
-  if (Notification.permission !== "granted")
-    Notification.requestPermission();
-  else {
-    var notification = new Notification(title, {
-      icon: 'http://cdn.sstatic.net/stackexchange/img/logos/so/so-icon.png',
-      body: body,
-    });
-
-  }
-}
-</script>
 </html>

@@ -1,44 +1,35 @@
-// Socket Connections
-var socket = null;
-// $(document).ready(function() {
+// convert the invite url to an absolute link
+document.getElementById("inviteLink").innerHTML = location.protocol + '//' + document.domain + '/r/' + document.getElementById("inviteLink").innerHTML;
 
-// request permission on page load
+
+// request notification permission on page load
 document.addEventListener('DOMContentLoaded', function() {
-    if (Notification.permission !== "granted")
+    if(Notification.permission !== "granted")
         Notification.requestPermission();
 });
 
-// Use a "/process" namespace.
-// An application can open a connection on multiple namespaces, and
-// Socket.IO will multiplex all those connections on a single
-// physical channel. If you don't care about multiple channels, you
-// can set the namespace to an empty string.
-namespace = '/process';
+// Socket Connections
+function init_socket_connection() {
+    namespace = '/process';
+    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
-// Connect to the Socket.IO server.
-// The connection URL has the following format:
-//     http[s]://<domain>:<port>[/<namespace>]
-socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+    // responses
+    socket.on('response', response_handler);
+    socket.on("sync_time_request", sync_time_request_handler);
+    socket.on('sync_time_response', sync_time_response_handler);
+    socket.on('playtoggle_response', playtoggle_response_handler);
+}
 
-// responses
-socket.on('response', function(msg) {
-    // TODO convert this to a proper disconnect_response
-
-    if (msg.data == "connect") {
-        // update the invite link with the room number
-        document.getElementById("inviteLink").innerHTML = location.protocol + '//' + document.domain + '/' + msg.room;
-        console.log("Invite Link: ", document.getElementById("inviteLink").innerHTML);
-    } else if (msg.data == "disconnect") {
+function response_handler(msg) {
+    if(msg.data == "disconnect") {
         // update the online member count
         updateMembersConnected(getMembersConnected() - 1);
+
     }
+    console.log(msg);
+}
 
-    console.log(msg.data);
-});
-
-socket.on("sync_time_request", function() {
-    // called when another user is requesting the timer time
-
+function sync_time_request_handler(msg) {
     updateMembersConnected(getMembersConnected() + 1);
     socket.emit('sync_time_event', {
         time: getTimerValue(),
@@ -48,27 +39,28 @@ socket.on("sync_time_request", function() {
         count: getMembersConnected()
     });
     displayNotification("New User Joined", "A new member has joined the group!");
+}
 
-
-});
-
-socket.on('sync_time_response', function(msg) {
+function sync_time_response_handler(msg) {
     // called when the current time is being received
     setTimerValue(msg.time, msg.paused);
     current_session = msg.session;
     updateMembersConnected(msg.count);
-    toggleMusic(isBreak(), msg.paused);
+    toggleMusic(isBreak(), msg.paused, false);
 
-    if (!notifications) {
+    if(isBreak()) {
+        document.getElementById("startButton").style.backgroundColor = "#170420";
+    } else {
+        document.getElementById("startButton").style.backgroundColor = "#E71D4A";
+    }
+
+    if(!notifications) {
         notifications = true;
         return;
     }
 
-    if (msg.type == "reset") {
-        displayNotification("RESET", "A group member has reset the timer.");
-    } else if (msg.type == "break") {
-
-        if (current_session % 2 == 0) {
+    if(msg.type == "break") {
+        if(current_session % 2 == 0) {
             // study session
             displayNotification("STUDY", "A group member has started the study session.");
         } else {
@@ -76,71 +68,87 @@ socket.on('sync_time_response', function(msg) {
         }
     }
     notifications = true;
+}
 
-
-});
-
-socket.on('playtoggle_response', function(msg) {
+function playtoggle_response_handler(msg) {
     toggleTimer();
     console.log("Pause");
-    toggleMusic(isBreak(), !isPaused());
+    toggleMusic(isBreak(), msg.pause, false);
 
-    if (isPaused()) {
-        // toggleMusic(isBreak(), true);
+    if(msg.pause) {
         document.getElementById("startButton").innerText = "START";
-        if (notifications) {
+        if(notifications) {
             displayNotification("Paused", "A group member has paused the timer.");
         }
     } else {
-        // toggleMusic(isBreak(), false);
         document.getElementById("startButton").innerText = "PAUSE";
-        if (notifications) {
+        if(notifications) {
             displayNotification("Resume", "A group member has resumed the timer.");
         }
     }
-
     // the notification were disabled before the request was emitted so that the would not appear for this user
     notifications = true;
+}
 
-});
+
 // emit
 $('form#playtoggle').submit(function(event) {
-    toggleMusic(isBreak(), isPaused());
+    notifications = false; // don't want this client to receive a notification for this - will be turned on later
 
-    if (pause) {
+    if(!socket) {
+        playtoggle_response_handler({
+            pause: !isPaused()
+        });
+        return false;
+    }
+
+    toggleMusic(isBreak(), !isPaused(), false);
+
+    if(pause) {
         document.getElementById("startButton").innerText = "START";
     } else {
         document.getElementById("startButton").innerText = "PAUSE";
     }
 
-    notifications = false; // don't want this client to receive a notification for this - will be turned on later
     socket.emit('playtoggle_event', {
-        room: ""
+        pause: !isPaused()
     });
     return false;
 });
-$('form#resetButton').submit(function(event) {
-    notifications = false; // don't want this client to receive a notification for this - will be turned on later
-    // tell all connected clients to increase their time by 5 minutes
-    socket.emit('sync_time_event', {
-        time: sessions[current_session],
-        paused: isPaused(),
-        session: current_session,
-        type: "reset",
-        count: getMembersConnected()
-    });
+$('form#muteToggle').submit(function(event) {
+    if(muted) {
+        unmute(1);
+        document.getElementById("muteButton").innerText = "MUTE";
+    } else {
+        mute();
+        document.getElementById("muteButton").innerText = "UNMUTE";
+    }
+
     return false;
 
 });
 $('form#breakToggle').submit(function(event) {
     notifications = false; // don't want to receive a notification for this - will be turned on later
-    toggleTimer(!isBreak(), isPaused());
     // start the next session (could be a break or a study session)
-    // current_session = ;
+    current_session = (current_session + 1) % 8;
+
+    if(!socket) {
+        sync_time_response_handler({
+            time: sessions[current_session],
+            paused: isPaused(),
+            session: current_session,
+            type: "break",
+            count: getMembersConnected()
+        });
+        return false;
+    }
+
+    toggleMusic(isBreak(), isPaused(), false);
+
     socket.emit('sync_time_event', {
-        time: sessions[(current_session + 1) % 8],
+        time: sessions[current_session],
         paused: isPaused(),
-        session: (current_session + 1) % 8,
+        session: current_session,
         type: "break",
         count: getMembersConnected()
     });
@@ -148,11 +156,15 @@ $('form#breakToggle').submit(function(event) {
 
 });
 
+var socket = false;
+
+// start a socket connection if the url contains a room number
+if($(location).attr('pathname') != "/") {
+    init_socket_connection();
+}
 
 // timer
-
-
-var sessions = [15000, 3000, 15000, 3000, 15000, 3000, 15000, 9000]; // [study, break, study, break ...]
+var sessions = [1500000, 300000, 1500000, 300000, 1500000, 300000, 1500000, 900000]; // [study, break, study, break ...]
 var current_session = 0;
 
 var pause = true;
@@ -166,27 +178,26 @@ var element, endTime, hours, mins, msLeft, time;
 
 function countdown(elementName, milliseconds) {
     function twoDigits(n) {
-        return (n <= 9 ? "0" + n : n);
+        return(n <= 9 ? "0" + n : n);
     }
 
     function updateTimer() {
         // if the timer is paused then don't do any updates to the time
-        if (pause) {
+        if(pause) {
             return 1;
         }
         msLeft = endTime - (+new Date);
 
-        if (msLeft < 0) {
+        if(msLeft < 0) {
             current_session = (current_session + 1) % 8;
-            // break and study notifications
-            if (current_session % 2 == 0) {
+            if(current_session % 2 == 0) {
                 // study session
-                // unmuteAll();
-                toggleMusic(false, false);
+                toggleMusic(false, false, true);
                 displayNotification("STUDY", "Time to study!");
 
             } else {
-                toggleMusic(true, false);
+                // break session
+                toggleMusic(true, false, true);
                 displayNotification("BREAK", "Time for a break!");
                 study_sessions_completed += 1;
                 document.getElementById("study_session_counter").innerHTML = study_sessions_completed;
@@ -208,38 +219,33 @@ function countdown(elementName, milliseconds) {
 }
 
 function getTimerValue() {
-    if (!msLeft) {
-        return (sessions[current_session])
+    if(!msLeft) {
+        return(sessions[current_session])
     }
-    return (msLeft);
+    return(msLeft);
 }
 
 function setTimerValue(time_left, paused) {
     pause = false;
     document.getElementById("startButton").innerText = "PAUSE";
     countdown("countdown", time_left);
-    if (paused) {
+    if(paused) {
         document.getElementById("startButton").innerText = "START";
         pause = true;
         pause_time = time_left;
     }
 
-
-    // if (paused() && !isBreak()){
-    //     console.log("unmute");
-    //     unmuteAll();
-    // }
-    // else{
-    //     console.log("mute");
-    //     muteAll();
-    // }
-
+    if(isBreak()) {
+        document.getElementById("startButton").style.backgroundColor = "#170420";
+    } else {
+        document.getElementById("startButton").style.backgroundColor = "#E71D4A";
+    }
 }
 
 function toggleTimer() {
-    if (pause) {
+    if(pause) {
         pause = false;
-        if (pause_time == sessions[current_session]) {
+        if(pause_time == sessions[current_session]) {
             // if this is the first play of the sesssion - don't want to skip 500 ms
             countdown("countdown", pause_time);
         } else {
@@ -257,25 +263,24 @@ function isPaused() {
     return pause;
 }
 
-function isBreak(){
-    if (current_session % 2 == 0) {
+function isBreak() {
+    if(current_session % 2 == 0) {
         return false;
     }
     return true;
 }
 
-
 function displayNotification(title, body) {
-    if (!Notification) {
+    if(!Notification) {
         alert('Desktop notifications not available in your browser. Try Chromium.');
         return;
     }
 
-    if (Notification.permission !== "granted")
+    if(Notification.permission !== "granted")
         Notification.requestPermission();
     else {
         var notification = new Notification(title, {
-            icon: 'http://cdn.sstatic.net/stackexchange/img/logos/so/so-icon.png',
+            icon: '../static/images/notification_image.png',
             body: body,
         });
 
@@ -292,6 +297,11 @@ function updateMembersConnected(count) {
 }
 
 function copyInviteLink(elementId) {
+    if(!socket) {
+        // if the person hasn't invited anyone yet, then there won't be a socket connection
+        init_socket_connection();
+    }
+
     var aux = document.createElement("input");
     aux.setAttribute("value", document.getElementById(elementId).innerHTML);
     document.body.appendChild(aux);
@@ -308,42 +318,70 @@ function copyInviteLink(elementId) {
     }, 3000);
 }
 
-
 // music
-var audio_sources = ["audio_rain"];
-var muted = false;
-
-
-function muteAll() {
-    for (source in audio_sources) {
-        var a = document.getElementById(audio_sources[source]);
-        // document.getElementById(audio_sources[source]).pause();
-        $(a).animate({
-            volume: 0
-        }, 1000);
-    }
+var audio_sources = {
+    "rain": 1,
+    "thunderstorm": 0.4,
+    "fan": 0.3,
+    "whitenoise": 0.05
 };
 
-function unmuteAll() {
-    for (source in audio_sources) {
-        // document.getElementById(audio_sources[source]).play();
-        var a = document.getElementById(audio_sources[source]);
-        $(a).animate({
-            volume: 1
-        }, 1000);
-    }
-};
+function toggleMusic(isBreak, isPaused, fade) {
+    // pauses or plays the music
+    console.log(isBreak, isPaused, fade);
 
+    for(source in audio_sources) {
+        console.log(source, audio_sources[source]);
+        var a = document.getElementById(source);
 
-function toggleMusic(isBreak, isPaused){
-    if (!isBreak && !isPaused){
-        unmuteAll();
-    }
-    else{
-        muteAll();
+        if(!isBreak && !isPaused) {
+            // play the music
+            a.currentTime = 0;
+            if(fade) {
+                $(a).animate({
+                    volume: audio_sources[source]
+                }, 1000);
+            } else {
+                a.volume = audio_sources[source];
+            }
+        } else {
+            // pause the music
+            if(fade) {
+                $(a).animate({
+                    volume: 0
+                }, 1000);
+            } else {
+                a.volume = 0;
+            }
+        }
     }
 }
 
-// muteAll();
+var muted = false;
 
-toggleMusic(isBreak(), isPaused());
+function mute() {
+    muted = true;
+    for(source in audio_sources) {
+        var a = document.getElementById(source);
+        a.pause();
+    }
+}
+
+function unmute(volume) {
+    muted = false;
+    for(source in audio_sources) {
+        var a = document.getElementById(source);
+
+        if(isBreak() || isPaused()) {
+            a.volume = 0;
+        } else {
+            a.volume = audio_sources[source];
+        }
+
+        a.play();
+    }
+}
+
+// at the start of the program, volume = 0
+// it is "playing" in the background so that when the mute button is toggled, we make the volume 1 so that it starts instantly instead of having to load
+unmute(0);
