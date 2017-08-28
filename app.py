@@ -45,7 +45,7 @@ def connect():
 
     # start the socket connection and join the room
     print("Connected: ", session["room_number"], " ID:", request.sid)
-    socketio.sleep(1)           # without sleeping it sometims causes a deviation in the times between users in the same group
+    socketio.sleep(2)           # without sleeping it sometimes causes a deviation in the times between users in the same group
     emit('sync_time_request', room=session["room_number"])
     join_room(session["room_number"])
     emit('response',{'data': "connect", "room":session["room_number"]}, room=session['room_number'])
