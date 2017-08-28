@@ -5,9 +5,9 @@
 ### Features
 - 25 min study / 5 min break
 - music playing in the background
-- **timer is syncronized between all the users**
-- invite link to get more people to join
-- pausing / playing on one browser does that action on all connected browsers
+- ***timer is syncronized between all the users***
+- ***invite link to get more people to join***
+- ***pausing / playing on one browser does that action on all connected browsers***
 
 ### Known Issues
 - sometimes Chrome has an issue joining a room (seems to be working fine on Safari)
