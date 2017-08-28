@@ -10,9 +10,10 @@
 - ***pausing / playing on one browser does that action on all connected browsers***
 
 ### Known Issues
-- sometimes Chrome has an issue joining a room (seems to have a limit on the number of sockets because it gives the message "waiting for available socket")
 - if it takes too long to connect, the time will be off slightly (this can be fixed by doing time syncs periodically between the group but this has not been implemented)
 - does not work on most mobile devices but was not meant to be used on one
+- sometimes Chrome has an issue joining a room (seems to have a limit on the number of sockets because it gives the message "waiting for available socket" if too many connections are made from the same computer - but this should not be an issue in real life usage since different computer would be used for different connections)
+
 
 
 ### Screenshots
