@@ -48,7 +48,7 @@ def connect():
     socketio.sleep(2)           # without sleeping it sometimes causes a deviation in the times between users in the same group
     emit('sync_time_request', room=session["room_number"])
     join_room(session["room_number"])
-    emit('response',{'data': "connect", "room":session["room_number"]}, room=session['room_number'])
+    # emit('response',{'data': "connect", "room":session["room_number"]}, room=session['room_number'])
 
 
 @socketio.on('disconnect', namespace='/process')

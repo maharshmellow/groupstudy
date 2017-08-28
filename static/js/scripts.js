@@ -382,6 +382,12 @@ function unmute(volume) {
     }
 }
 
+document.getElementById("rain").preload = "auto";
+document.getElementById("thunderstorm").preload = "auto";
+document.getElementById("fan").preload = "auto";
+document.getElementById("whitenoise").preload = "auto";
+
+
 // at the start of the program, volume = 0
 // it is "playing" in the background so that when the mute button is toggled, we make the volume 1 so that it starts instantly instead of having to load
 unmute(0);
