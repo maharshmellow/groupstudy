@@ -1,7 +1,5 @@
 # Group Study Timer
 
-<a href="http://study.maharsh.net"><img src="https://cdn.rawgit.com/maharshmellow/9432103de7a69af18b0d528d852462cf/raw/16c47c1cd0b215876532dcd5decd88606ec13096/demo_red.svg" width="150px;"/></a>
-
 ### Features
 - 25 min study / 5 min break
 - music playing in the background
